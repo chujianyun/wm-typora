@@ -50,10 +50,10 @@
 
 **Interfaces:** Produces bridge methods for file/workspace dialogs, reads, atomic writes, image copies, and HTML export. Rust returns `{ code, message, path }` errors and constrains operations to granted roots.
 
-- [ ] Write frontend contract tests and Rust tests for reads, filtering, root checks, atomic replacement, and image collision names.
-- [ ] Run Vitest and `cargo test`; verify missing-behavior failures.
-- [ ] Implement browser-local fallbacks, Tauri invokes, and guarded Rust commands.
-- [ ] Run focused suites and verify they pass.
+- [x] Write frontend contract tests and Rust tests for reads, filtering, root checks, atomic replacement, and image collision names.
+- [x] Run Vitest and `cargo test`; verify missing-behavior failures.
+- [x] Implement browser-local fallbacks, Tauri invokes, and guarded Rust commands.
+- [x] Run focused suites and verify they pass.
 
 ### Task 4: Editors and Markdown-preserving mode switching
 

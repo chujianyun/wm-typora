@@ -61,10 +61,10 @@
 
 **Interfaces:** Produces `EditorAdapter { getMarkdown, setMarkdown, focus, getCursor }`; both controlled editors call `onChange(markdown)` and mode changes never translate through HTML.
 
-- [ ] Write shared contract/component tests proving edit updates and verbatim mode switching.
-- [ ] Run tests and witness missing-editor failures.
-- [ ] Implement Crepe and CodeMirror lifecycle adapters.
-- [ ] Run editor and full frontend suites.
+- [x] Write shared contract/component tests proving edit updates and verbatim mode switching.
+- [x] Run tests and witness missing-editor failures.
+- [x] Implement Crepe and CodeMirror lifecycle adapters.
+- [x] Run editor and full frontend suites.
 
 ### Task 5: Application shell, workspace, find, preferences, and recovery
 

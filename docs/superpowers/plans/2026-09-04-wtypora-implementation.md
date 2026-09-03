@@ -39,10 +39,10 @@
 
 **Interfaces:** Produces `useDocumentStore`, `scheduleAutosave(save, delay = 800)`, `calculateStatistics(markdown)`, and `buildOutline(markdown)`; `DocumentState` contains all fields named in the spec.
 
-- [ ] Write focused tests for state transitions, hand-derived statistics, heading hierarchy, and the 800 ms timer.
-- [ ] Run those tests and verify each fails for missing behavior.
-- [ ] Implement the smallest pure functions and Zustand transitions satisfying the contracts.
-- [ ] Run focused and complete frontend suites.
+- [x] Write focused tests for state transitions, hand-derived statistics, heading hierarchy, and the 800 ms timer.
+- [x] Run those tests and verify each fails for missing behavior.
+- [x] Implement the smallest pure functions and Zustand transitions satisfying the contracts.
+- [x] Run focused and complete frontend suites.
 
 ### Task 3: Typed native bridge and Rust filesystem commands
 

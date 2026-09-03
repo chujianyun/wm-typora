@@ -12,14 +12,16 @@ interface EditorPaneProps {
   adapterRef?: RefObject<EditorAdapter | null>;
   focusMode?: boolean;
   typewriterMode?: boolean;
+  onImageUpload?: (file: File) => Promise<string>;
+  theme?: "light" | "dark";
 }
 
-export function EditorPane({ mode, markdown, onChange, adapterRef, ...writingModes }: EditorPaneProps) {
+export function EditorPane({ mode, markdown, onChange, adapterRef, theme = "light", ...writingModes }: EditorPaneProps) {
   const Editor = mode === "visual" ? VisualEditor : SourceEditor;
   return (
     <section className="editor-pane" aria-label="Document editor">
       <Editor
-        key={mode}
+        key={`${mode}-${theme}`}
         value={markdown}
         onChange={onChange}
         adapterRef={adapterRef}

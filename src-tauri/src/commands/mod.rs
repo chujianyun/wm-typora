@@ -1,5 +1,6 @@
 pub mod files;
 pub mod images;
+pub mod watcher;
 pub mod workspace;
 
 use crate::{error::NativeResult, state::AccessState};

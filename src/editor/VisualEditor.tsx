@@ -12,6 +12,7 @@ export function VisualEditor({
   adapterRef,
   focusMode = false,
   typewriterMode = false,
+  onImageUpload,
 }: EditorProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const crepeRef = useRef<Crepe | null>(null);
@@ -62,6 +63,13 @@ export function VisualEditor({
             return undefined;
           },
         },
+        ...(onImageUpload
+          ? {
+              [Crepe.Feature.ImageBlock]: {
+                onUpload: onImageUpload,
+              },
+            }
+          : {}),
       },
     });
     crepe.on((listener) => {
@@ -109,7 +117,7 @@ export function VisualEditor({
       crepeRef.current = null;
       void crepe.destroy();
     };
-  }, [adapterRef]);
+  }, [adapterRef, onImageUpload]);
 
   useEffect(() => {
     const crepe = crepeRef.current;

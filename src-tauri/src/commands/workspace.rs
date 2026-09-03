@@ -17,14 +17,18 @@ pub struct WorkspaceEntry {
 }
 
 fn ignored_directory(name: &str) -> bool {
-    name.starts_with('.')
-        || matches!(name, "node_modules" | "dist" | "build" | "target" | ".git")
+    name.starts_with('.') || matches!(name, "node_modules" | "dist" | "build" | "target" | ".git")
 }
 
 fn supported_file(path: &Path) -> bool {
     path.extension()
         .and_then(|extension| extension.to_str())
-        .is_some_and(|extension| matches!(extension.to_ascii_lowercase().as_str(), "md" | "markdown" | "txt"))
+        .is_some_and(|extension| {
+            matches!(
+                extension.to_ascii_lowercase().as_str(),
+                "md" | "markdown" | "txt"
+            )
+        })
 }
 
 fn scan(directory: &Path) -> NativeResult<Vec<WorkspaceEntry>> {
@@ -59,16 +63,13 @@ fn scan(directory: &Path) -> NativeResult<Vec<WorkspaceEntry>> {
             }
         }
     }
-    files.sort_by(|left, right| left.name.to_lowercase().cmp(&right.name.to_lowercase()));
-    directories.sort_by(|left, right| left.name.to_lowercase().cmp(&right.name.to_lowercase()));
+    files.sort_by_key(|left| left.name.to_lowercase());
+    directories.sort_by_key(|left| left.name.to_lowercase());
     files.extend(directories);
     Ok(files)
 }
 
-pub fn scan_workspace_impl(
-    state: &AccessState,
-    path: &Path,
-) -> NativeResult<Vec<WorkspaceEntry>> {
+pub fn scan_workspace_impl(state: &AccessState, path: &Path) -> NativeResult<Vec<WorkspaceEntry>> {
     let path = state.resolve_allowed(path)?;
     scan(&path)
 }

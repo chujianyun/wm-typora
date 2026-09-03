@@ -11,6 +11,7 @@ interface TitleBarProps {
   onOpen(): void;
   onOpenWorkspace(): void;
   onSave(): void;
+  onSaveAs(): void;
   onToggleSidebar(): void;
   onToggleMode(): void;
   onToggleFind(): void;
@@ -36,6 +37,7 @@ export function TitleBar(props: TitleBarProps) {
         <button aria-label="打开文件" onClick={props.onOpen}>打开</button>
         <button aria-label="打开文件夹" onClick={props.onOpenWorkspace}>文件夹</button>
         <button aria-label="保存文档" onClick={props.onSave}>保存</button>
+        <button aria-label="另存为" onClick={props.onSaveAs}>另存</button>
       </nav>
       <div className="document-title">
         <strong>{props.fileName}</strong>

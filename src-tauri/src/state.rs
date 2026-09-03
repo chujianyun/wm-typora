@@ -13,7 +13,8 @@ impl AccessState {
     pub fn grant(&self, path: impl AsRef<Path>) -> NativeResult<PathBuf> {
         let path = path.as_ref();
         let canonical = if path.exists() {
-            path.canonicalize().map_err(|error| NativeError::io(error, path))?
+            path.canonicalize()
+                .map_err(|error| NativeError::io(error, path))?
         } else {
             let parent = path.parent().ok_or_else(|| {
                 NativeError::new("invalid_path", "The selected path has no parent").at(path)
@@ -22,14 +23,18 @@ impl AccessState {
                 .canonicalize()
                 .map_err(|error| NativeError::io(error, parent))?
         };
-        self.roots.lock().expect("access roots poisoned").push(canonical.clone());
+        self.roots
+            .lock()
+            .expect("access roots poisoned")
+            .push(canonical.clone());
         Ok(canonical)
     }
 
     pub fn resolve_allowed(&self, path: impl AsRef<Path>) -> NativeResult<PathBuf> {
         let path = path.as_ref();
         let candidate = if path.exists() {
-            path.canonicalize().map_err(|error| NativeError::io(error, path))?
+            path.canonicalize()
+                .map_err(|error| NativeError::io(error, path))?
         } else {
             let parent = path.parent().ok_or_else(|| {
                 NativeError::new("invalid_path", "Path has no parent directory").at(path)

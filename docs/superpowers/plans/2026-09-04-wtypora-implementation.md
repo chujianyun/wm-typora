@@ -92,8 +92,8 @@
 
 **Files:** integrated app/style/config updates and `README.md`.
 
-- [ ] Run frontend tests, typecheck, lint, production build, and Rust tests from clean invocations.
-- [ ] Fix only evidence-backed integration failures and rerun complete commands.
-- [ ] Build a debug desktop bundle.
-- [ ] Start Tauri dev, confirm the process reaches running state, and leave it available.
-- [ ] Record exact commands, requirements, scope, and manual smoke checks in `README.md`.
+- [x] Run frontend tests, typecheck, lint, production build, and Rust tests from clean invocations.
+- [x] Fix only evidence-backed integration failures and rerun complete commands.
+- [x] Build a debug desktop bundle.
+- [x] Install the Tauri application, confirm its process reaches running state, and leave it available.
+- [x] Record exact commands, requirements, scope, and manual smoke checks in `README.md`.

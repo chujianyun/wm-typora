@@ -1,4 +1,5 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { createBrowserNativeBridge } from "./browserBridge";
 import type {
@@ -58,6 +59,14 @@ class TauriNativeBridge implements NativeBridge {
     return invoke<CopiedImage>("copy_image", { sourcePath, documentPath });
   }
 
+  storeImage(fileName: string, bytes: Uint8Array, documentPath: string) {
+    return invoke<CopiedImage>("store_image", {
+      fileName,
+      bytes: Array.from(bytes),
+      documentPath,
+    });
+  }
+
   async exportHtml(html: string, suggestedName = "document.html") {
     const path = await save({
       defaultPath: suggestedName,
@@ -67,6 +76,17 @@ class TauriNativeBridge implements NativeBridge {
     await this.grantPath(path);
     await invoke("write_export_file", { path, html });
     return path;
+  }
+
+  async watchFile(path: string, onChange: (path: string) => void) {
+    const unlisten = await listen<{ path: string }>("file-changed", (event) => {
+      if (event.payload.path === path) onChange(path);
+    });
+    const watchId = await invoke<string>("start_file_watch", { path });
+    return async () => {
+      unlisten();
+      await invoke("stop_file_watch", { path: watchId });
+    };
   }
 }
 

@@ -2,7 +2,7 @@ use std::fs;
 use tempfile::tempdir;
 use wtypora_lib::commands::{
     files::{read_text_file_impl, write_text_file_atomic_impl},
-    images::copy_image_impl,
+    images::{copy_image_impl, store_image_impl},
     workspace::scan_workspace_impl,
 };
 use wtypora_lib::state::AccessState;
@@ -72,4 +72,18 @@ fn copies_images_with_a_collision_safe_name() {
     let copied = copy_image_impl(&state, &source, &document).unwrap();
     assert_eq!(copied.relative_path, "note.assets/photo-2.png");
     assert_eq!(fs::read_to_string(copied.absolute_path).unwrap(), "image");
+}
+
+#[test]
+fn stores_pasted_image_bytes_next_to_the_document() {
+    let document_dir = tempdir().unwrap();
+    let document = document_dir.path().join("note.md");
+    fs::write(&document, "note").unwrap();
+    let state = AccessState::default();
+    state.grant(document_dir.path()).unwrap();
+
+    let stored = store_image_impl(&state, "clipboard.png", b"png bytes", &document).unwrap();
+
+    assert_eq!(stored.relative_path, "note.assets/clipboard.png");
+    assert_eq!(fs::read(stored.absolute_path).unwrap(), b"png bytes");
 }

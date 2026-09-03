@@ -43,5 +43,7 @@ export interface NativeBridge {
   saveFileAs(markdown: string, suggestedName?: string): Promise<FileWriteResult | null>;
   scanWorkspace(path: string): Promise<WorkspaceEntry[]>;
   copyImage(sourcePath: string, documentPath: string): Promise<CopiedImage>;
+  storeImage(fileName: string, bytes: Uint8Array, documentPath: string): Promise<CopiedImage>;
   exportHtml(html: string, suggestedName?: string): Promise<string | null>;
+  watchFile(path: string, onChange: (path: string) => void): Promise<() => Promise<void>>;
 }

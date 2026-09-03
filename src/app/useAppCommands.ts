@@ -37,6 +37,25 @@ export function useAppCommands(bridge: NativeBridge) {
     }
   }, [bridge]);
 
+  const saveAsDocument = useCallback(async () => {
+    const document = useDocumentStore.getState();
+    const suggestedName = document.path?.split(/[\\/]/).at(-1) ?? "Untitled.md";
+    document.startSaving();
+    try {
+      const result = await bridge.saveFileAs(document.markdown, suggestedName);
+      if (!result) {
+        useDocumentStore.getState().updateMarkdown(document.markdown);
+        return false;
+      }
+      useDocumentStore.getState().saveAsSucceeded(result.path, result.modifiedAt);
+      usePreferenceStore.getState().addRecentFile(result.path);
+      return true;
+    } catch (error) {
+      useDocumentStore.getState().saveFailed(errorMessage(error));
+      return false;
+    }
+  }, [bridge]);
+
   const protect = useCallback((action: DeferredAction) => {
     const status = useDocumentStore.getState().saveStatus;
     if (status === "dirty" || status === "saving" || status === "error") {
@@ -95,6 +114,8 @@ export function useAppCommands(bridge: NativeBridge) {
     openPath,
     openWorkspace,
     saveDocument,
+    saveAsDocument,
+    requestAction: protect,
     discardAndContinue,
     saveAndContinue,
     cancelDeferred: () => setDeferredAction(null),

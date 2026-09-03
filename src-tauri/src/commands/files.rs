@@ -103,10 +103,7 @@ pub fn write_text_file_atomic_impl(
 }
 
 #[tauri::command]
-pub fn read_text_file(
-    state: State<'_, AccessState>,
-    path: String,
-) -> NativeResult<FileSnapshot> {
+pub fn read_text_file(state: State<'_, AccessState>, path: String) -> NativeResult<FileSnapshot> {
     read_text_file_impl(&state, Path::new(&path))
 }
 

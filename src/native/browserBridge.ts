@@ -125,8 +125,23 @@ export function createMemoryNativeBridge(options: MemoryBridgeOptions = {}): Nat
       files.set(`${parent}/${relativePath}`, { ...source, modifiedAt: now() });
       return { absolutePath: `${parent}/${relativePath}`, relativePath };
     },
+    async storeImage(fileName, bytes, documentPath) {
+      const documentName = nameFromPath(documentPath).replace(/\.[^.]+$/, "");
+      const parent = documentPath.includes("/")
+        ? documentPath.slice(0, documentPath.lastIndexOf("/"))
+        : ".";
+      const relativePath = `${documentName}.assets/${nameFromPath(fileName)}`;
+      files.set(`${parent}/${relativePath}`, {
+        contents: `[binary:${bytes.byteLength}]`,
+        modifiedAt: now(),
+      });
+      return { absolutePath: `${parent}/${relativePath}`, relativePath };
+    },
     async exportHtml(_html, suggestedName = "document.html") {
       return `/Downloads/${suggestedName}`;
+    },
+    async watchFile() {
+      return async () => undefined;
     },
   };
 }

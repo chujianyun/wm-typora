@@ -18,4 +18,5 @@ export interface EditorProps {
   adapterRef?: RefObject<EditorAdapter | null>;
   focusMode?: boolean;
   typewriterMode?: boolean;
+  onImageUpload?: (file: File) => Promise<string>;
 }

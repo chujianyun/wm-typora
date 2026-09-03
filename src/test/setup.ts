@@ -13,3 +13,9 @@ Object.defineProperty(window, "matchMedia", {
     dispatchEvent: () => false,
   }),
 });
+
+// jsdom has no layout engine, while ProseMirror's virtual cursor asks Range for
+// geometry after controlled document updates. Empty geometry makes it take its
+// own non-layout fallback without changing production behavior.
+Range.prototype.getClientRects = () => [] as unknown as DOMRectList;
+Range.prototype.getBoundingClientRect = () => new DOMRect();

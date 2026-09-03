@@ -15,10 +15,18 @@ export function VisualEditor({
   const rootRef = useRef<HTMLDivElement>(null);
   const crepeRef = useRef<Crepe | null>(null);
   const initialValueRef = useRef(value);
+  const latestValueRef = useRef(value);
   const markdownRef = useRef(value);
   const onChangeRef = useRef(onChange);
   const applyingRef = useRef(false);
-  onChangeRef.current = onChange;
+
+  useEffect(() => {
+    latestValueRef.current = value;
+  }, [value]);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   useEffect(() => {
     if (!rootRef.current) return;
@@ -44,6 +52,14 @@ export function VisualEditor({
     let adapter: EditorAdapter | null = null;
     void crepe.create().then(() => {
       crepeRef.current = crepe;
+      if (latestValueRef.current !== markdownRef.current) {
+        applyingRef.current = true;
+        markdownRef.current = latestValueRef.current;
+        crepe.editor.action(replaceAll(latestValueRef.current));
+        queueMicrotask(() => {
+          applyingRef.current = false;
+        });
+      }
       adapter = {
         getMarkdown: () => markdownRef.current,
         setMarkdown: (next) => {

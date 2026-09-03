@@ -17,7 +17,10 @@ export function SourceEditor({
   const onChangeRef = useRef(onChange);
   const applyingRef = useRef(false);
   const initialValueRef = useRef(value);
-  onChangeRef.current = onChange;
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   useEffect(() => {
     if (!rootRef.current) return;

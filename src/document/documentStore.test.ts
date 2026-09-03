@@ -52,6 +52,21 @@ describe("document store", () => {
     });
   });
 
+  it("adopts the selected path after saving an unnamed document", () => {
+    const store = useDocumentStore.getState();
+    store.updateMarkdown("new note");
+    store.startSaving();
+    store.saveAsSucceeded("/notes/new.md", 25);
+
+    expect(useDocumentStore.getState()).toMatchObject({
+      path: "/notes/new.md",
+      markdown: "new note",
+      persistedMarkdown: "new note",
+      modifiedAt: 25,
+      saveStatus: "clean",
+    });
+  });
+
   it("reloads clean external changes but asks before replacing dirty content", () => {
     const store = useDocumentStore.getState();
     store.openDocument({ path: "/notes/a.md", markdown: "disk v1", modifiedAt: 10 });

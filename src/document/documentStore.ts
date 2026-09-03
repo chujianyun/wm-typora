@@ -12,6 +12,7 @@ interface DocumentActions {
   updateMarkdown: (markdown: string) => void;
   startSaving: () => void;
   saveSucceeded: (modifiedAt: number) => void;
+  saveAsSucceeded: (path: string, modifiedAt: number) => void;
   saveFailed: (message: string) => void;
   applyExternalChange: (
     markdown: string,
@@ -59,6 +60,14 @@ export const useDocumentStore = create<DocumentStore>()((set, get) => ({
   startSaving: () => set({ saveStatus: "saving", saveError: null }),
   saveSucceeded: (modifiedAt) =>
     set((state) => ({
+      persistedMarkdown: state.markdown,
+      modifiedAt,
+      saveStatus: "clean",
+      saveError: null,
+    })),
+  saveAsSucceeded: (path, modifiedAt) =>
+    set((state) => ({
+      path,
       persistedMarkdown: state.markdown,
       modifiedAt,
       saveStatus: "clean",

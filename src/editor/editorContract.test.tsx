@@ -21,3 +21,17 @@ describe.each([
     expect(container).toHaveTextContent("Updated");
   });
 });
+
+describe("visual editor initialization", () => {
+  it("applies the latest controlled value while the editor is starting", async () => {
+    const adapterRef = { current: null } as RefObject<EditorAdapter | null>;
+    const { rerender } = render(
+      <VisualEditor value="first" onChange={() => undefined} adapterRef={adapterRef} />,
+    );
+    rerender(
+      <VisualEditor value="latest" onChange={() => undefined} adapterRef={adapterRef} />,
+    );
+
+    await waitFor(() => expect(adapterRef.current?.getMarkdown()).toBe("latest"));
+  });
+});

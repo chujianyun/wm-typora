@@ -72,10 +72,10 @@
 
 **Interfaces:** Produces the five-zone UI, semantic commands, recent items, theme/editor/writing settings, and local recovery drafts.
 
-- [ ] Write interaction tests for sidebar tabs, file opening, mode toggle, find/replace, save prompt, and recovery.
-- [ ] Run tests and verify expected missing-UI failures.
-- [ ] Build accessible focused components and wire shortcuts through one command hook.
-- [ ] Run component and complete frontend suites.
+- [x] Write interaction tests for sidebar tabs, file opening, mode toggle, find/replace, save prompt, and recovery.
+- [x] Run tests and verify expected missing-UI failures.
+- [x] Build accessible focused components and wire shortcuts through one command hook.
+- [x] Run component and complete frontend suites.
 
 ### Task 6: Mermaid rendering and safe HTML/PDF export
 

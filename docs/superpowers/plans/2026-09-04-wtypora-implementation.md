@@ -83,10 +83,10 @@
 
 **Interfaces:** Produces `renderMermaid`, `sanitizeExportHtml`, `buildHtmlDocument`, and `printDocument`.
 
-- [ ] Write tests for strict Mermaid configuration, errors, inline SVG, math CSS, and unsafe HTML removal.
-- [ ] Run focused tests and witness feature-missing failures.
-- [ ] Implement bounded Mermaid rendering and static export generation.
-- [ ] Run focused and complete frontend suites.
+- [x] Write tests for strict Mermaid configuration, errors, inline SVG, math CSS, and unsafe HTML removal.
+- [x] Run focused tests and witness feature-missing failures.
+- [x] Implement bounded Mermaid rendering and static export generation.
+- [x] Run focused and complete frontend suites.
 
 ### Task 7: Integration, packaging, and startup
 

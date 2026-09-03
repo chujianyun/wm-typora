@@ -16,6 +16,8 @@ import {
 import { calculateStatistics } from "../document/statistics";
 import type { EditorAdapter } from "../editor/EditorAdapter";
 import { EditorPane } from "../editor/EditorPane";
+import { buildHtmlDocument } from "../export/buildHtml";
+import { printHtmlDocument } from "../export/print";
 import { nativeBridge } from "../native/nativeBridge";
 import type { NativeBridge } from "../native/types";
 import { initializePreferences, usePreferenceStore } from "../preferences/preferenceStore";
@@ -56,6 +58,12 @@ export function App({ bridge = nativeBridge }: AppProps) {
     [documentState.markdown],
   );
   const outline = useMemo(() => buildOutline(documentState.markdown), [documentState.markdown]);
+  const activeTheme =
+    preferences.theme === "system"
+      ? window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light"
+      : preferences.theme;
 
   useEffect(() => {
     void initializePreferences();
@@ -63,14 +71,8 @@ export function App({ bridge = nativeBridge }: AppProps) {
   }, [autosave]);
 
   useEffect(() => {
-    const resolved =
-      preferences.theme === "system"
-        ? window.matchMedia("(prefers-color-scheme: dark)").matches
-          ? "dark"
-          : "light"
-        : preferences.theme;
-    document.documentElement.dataset.theme = resolved;
-  }, [preferences.theme]);
+    document.documentElement.dataset.theme = activeTheme;
+  }, [activeTheme]);
 
   useEffect(() => {
     if (documentState.saveStatus === "dirty" || documentState.saveStatus === "error") {
@@ -128,6 +130,13 @@ export function App({ bridge = nativeBridge }: AppProps) {
     );
   };
 
+  const exportName = `${fileName(documentState.path).replace(/\.[^.]+$/, "")}.html`;
+  const buildExport = () =>
+    buildHtmlDocument(documentState.markdown, {
+      title: fileName(documentState.path),
+      theme: activeTheme,
+    });
+
   const insertDroppedImages = async (files: FileList) => {
     let path = useDocumentStore.getState().path;
     if (!path) {
@@ -163,6 +172,12 @@ export function App({ bridge = nativeBridge }: AppProps) {
           preferences.setEditorMode(preferences.editorMode === "visual" ? "source" : "visual")
         }
         onToggleFind={() => setFindOpen((value) => !value)}
+        onExportHtml={() => {
+          void buildExport().then((html) => bridge.exportHtml(html, exportName));
+        }}
+        onPrint={() => {
+          void buildExport().then(printHtmlDocument);
+        }}
         onCycleTheme={cycleTheme}
       />
 

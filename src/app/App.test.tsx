@@ -62,4 +62,20 @@ describe("App", () => {
     expect(await screen.findByRole("button", { name: "guide.md" })).toBeVisible();
     expect(screen.queryByText("image.png")).not.toBeInTheDocument();
   });
+
+  it("exports the current Markdown as safe standalone HTML", async () => {
+    const user = userEvent.setup();
+    const memory = createMemoryNativeBridge();
+    const exportHtml = vi.fn().mockResolvedValue("/Downloads/Untitled.html");
+    useDocumentStore.getState().updateMarkdown("# Export me\n\n<script>bad()</script>");
+    render(<App bridge={{ ...memory, exportHtml }} />);
+
+    await user.click(screen.getByRole("button", { name: "导出 HTML" }));
+
+    await waitFor(() => expect(exportHtml).toHaveBeenCalledTimes(1));
+    const [html, name] = exportHtml.mock.calls[0];
+    expect(name).toBe("Untitled.html");
+    expect(html).toContain("<h1>Export me</h1>");
+    expect(html).not.toContain("<script>");
+  });
 });

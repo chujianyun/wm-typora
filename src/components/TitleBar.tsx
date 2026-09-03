@@ -14,6 +14,8 @@ interface TitleBarProps {
   onToggleSidebar(): void;
   onToggleMode(): void;
   onToggleFind(): void;
+  onExportHtml(): void;
+  onPrint(): void;
   onCycleTheme(): void;
 }
 
@@ -41,6 +43,8 @@ export function TitleBar(props: TitleBarProps) {
       </div>
       <nav className="view-actions" aria-label="视图操作">
         <button aria-label="查找与替换" onClick={props.onToggleFind}>查找</button>
+        <button aria-label="导出 HTML" onClick={props.onExportHtml}>HTML</button>
+        <button aria-label="打印或导出 PDF" onClick={props.onPrint}>打印</button>
         <button aria-label="源码模式" aria-pressed={props.mode === "source"} onClick={props.onToggleMode}>
           {props.mode === "source" ? "所见模式" : "源码"}
         </button>

@@ -34,4 +34,17 @@ describe("visual editor initialization", () => {
 
     await waitFor(() => expect(adapterRef.current?.getMarkdown()).toBe("latest"));
   });
+
+  it("renders Mermaid code blocks as an inline preview", async () => {
+    const { container } = render(
+      <VisualEditor
+        value={"```mermaid\nflowchart LR\nA-->B\n```"}
+        onChange={() => undefined}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(container.querySelector("[data-mermaid-preview] svg")).toBeInTheDocument(),
+    );
+  });
 });

@@ -4,6 +4,7 @@ import "@milkdown/crepe/theme/nord.css";
 import { replaceAll } from "@milkdown/utils";
 import { useEffect, useRef } from "react";
 import type { EditorAdapter, EditorProps } from "./EditorAdapter";
+import { renderMermaid } from "./mermaid";
 
 export function VisualEditor({
   value,
@@ -37,6 +38,29 @@ export function VisualEditor({
         [Crepe.Feature.Placeholder]: {
           text: "开始写作，输入 / 插入内容…",
           mode: "doc",
+        },
+        [Crepe.Feature.CodeMirror]: {
+          previewOnlyByDefault: true,
+          renderPreview: (language, content, applyPreview) => {
+            if (language.toLowerCase() !== "mermaid") return null;
+            const theme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+            void renderMermaid(content, theme).then((result) => {
+              const preview = document.createElement("div");
+              preview.dataset.mermaidPreview = "true";
+              preview.className = "mermaid-preview";
+              if (result.ok) {
+                preview.innerHTML = result.svg;
+              } else {
+                const error = document.createElement("strong");
+                error.textContent = `Mermaid 语法错误：${result.error}`;
+                const source = document.createElement("pre");
+                source.textContent = result.source;
+                preview.append(error, source);
+              }
+              applyPreview(preview.outerHTML);
+            });
+            return undefined;
+          },
         },
       },
     });

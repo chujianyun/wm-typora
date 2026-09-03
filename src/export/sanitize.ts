@@ -5,12 +5,13 @@ function safeUrl(value: string, image: boolean) {
   if (!normalized || normalized.startsWith("#") || normalized.startsWith("/") || normalized.startsWith("./") || normalized.startsWith("../")) return true;
   if (normalized.startsWith("http:") || normalized.startsWith("https:")) return true;
   if (!image && normalized.startsWith("mailto:")) return true;
-  return image && normalized.startsWith("data:image/");
+  if (image && normalized.startsWith("data:image/")) return true;
+  return !normalized.startsWith("//") && !/^[a-z][a-z\d+.-]*:/i.test(normalized);
 }
 
 export function sanitizeExportHtml(html: string) {
   const sanitized = DOMPurify.sanitize(html, {
-    USE_PROFILES: { html: true, svg: true, svgFilters: true },
+    USE_PROFILES: { html: true, svg: true, svgFilters: true, mathMl: true },
     FORBID_TAGS: ["script", "iframe", "object", "embed", "form", "base"],
     FORBID_ATTR: ["srcdoc"],
     ALLOW_DATA_ATTR: true,

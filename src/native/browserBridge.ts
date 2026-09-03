@@ -91,7 +91,15 @@ export function createMemoryNativeBridge(options: MemoryBridgeOptions = {}): Nat
     return asSnapshot(path, file);
   };
 
-  const writeFileAtomic = async (path: string, markdown: string): Promise<FileWriteResult> => {
+  const writeFileAtomic = async (
+    path: string,
+    markdown: string,
+    expectedDigest?: string | null,
+  ): Promise<FileWriteResult> => {
+    const existing = files.get(path);
+    if (expectedDigest && (!existing || digest(existing.contents) !== expectedDigest)) {
+      throw { code: "external_change", message: "File changed on disk", path };
+    }
     const modifiedAt = now();
     files.set(path, { contents: markdown, modifiedAt });
     return { path, modifiedAt, digest: digest(markdown) };
@@ -136,6 +144,9 @@ export function createMemoryNativeBridge(options: MemoryBridgeOptions = {}): Nat
         modifiedAt: now(),
       });
       return { absolutePath: `${parent}/${relativePath}`, relativePath };
+    },
+    async resolveImagePath(_documentPath, imagePath) {
+      return imagePath;
     },
     async exportHtml(_html, suggestedName = "document.html") {
       return `/Downloads/${suggestedName}`;

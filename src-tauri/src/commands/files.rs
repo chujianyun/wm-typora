@@ -65,6 +65,15 @@ pub fn write_text_file_atomic_impl(
     path: &Path,
     markdown: &str,
 ) -> NativeResult<FileWriteResult> {
+    write_text_file_atomic_checked_impl(state, path, markdown, None)
+}
+
+pub fn write_text_file_atomic_checked_impl(
+    state: &AccessState,
+    path: &Path,
+    markdown: &str,
+    expected_digest: Option<&str>,
+) -> NativeResult<FileWriteResult> {
     let path = state.resolve_allowed(path)?;
     let parent = path.parent().ok_or_else(|| {
         NativeError::new("invalid_path", "Destination has no parent directory").at(&path)
@@ -74,6 +83,9 @@ pub fn write_text_file_atomic_impl(
         .unwrap_or_default()
         .as_nanos();
     let temporary = parent.join(format!(".wtypora-{}-{unique}.tmp", std::process::id()));
+    let original_permissions = fs::metadata(&path)
+        .ok()
+        .map(|metadata| metadata.permissions());
 
     let result = (|| -> NativeResult<()> {
         let mut file = OpenOptions::new()
@@ -86,7 +98,31 @@ pub fn write_text_file_atomic_impl(
         file.sync_all()
             .map_err(|error| NativeError::io(error, &temporary))?;
         drop(file);
+        if let Some(permissions) = original_permissions {
+            fs::set_permissions(&temporary, permissions)
+                .map_err(|error| NativeError::io(error, &temporary))?;
+        }
+        if let Some(expected_digest) = expected_digest {
+            let current = fs::read_to_string(&path).map_err(|_| {
+                NativeError::new(
+                    "external_change",
+                    "File changed on disk; review it before overwriting",
+                )
+                .at(&path)
+            })?;
+            if digest(&current) != expected_digest {
+                return Err(NativeError::new(
+                    "external_change",
+                    "File changed on disk; review it before overwriting",
+                )
+                .at(&path));
+            }
+        }
         fs::rename(&temporary, &path).map_err(|error| NativeError::io(error, &path))?;
+        #[cfg(unix)]
+        std::fs::File::open(parent)
+            .and_then(|directory| directory.sync_all())
+            .map_err(|error| NativeError::io(error, parent))?;
         Ok(())
     })();
 
@@ -112,8 +148,14 @@ pub fn write_text_file_atomic(
     state: State<'_, AccessState>,
     path: String,
     markdown: String,
+    expected_digest: Option<String>,
 ) -> NativeResult<FileWriteResult> {
-    write_text_file_atomic_impl(&state, Path::new(&path), &markdown)
+    write_text_file_atomic_checked_impl(
+        &state,
+        Path::new(&path),
+        &markdown,
+        expected_digest.as_deref(),
+    )
 }
 
 #[tauri::command]

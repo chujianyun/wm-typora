@@ -1,10 +1,59 @@
 import { Crepe } from "@milkdown/crepe";
 import "@milkdown/crepe/theme/common/style.css";
 import "@milkdown/crepe/theme/nord.css";
+import { editorViewCtx, serializerCtx } from "@milkdown/core";
+import type { Node as ProseMirrorNode } from "@milkdown/prose/model";
+import { TextSelection } from "@milkdown/prose/state";
 import { replaceAll } from "@milkdown/utils";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { buildOutline, type OutlineItem } from "../workspace/outline";
+import { splitFrontMatter } from "../document/frontMatter";
 import type { EditorAdapter, EditorProps } from "./EditorAdapter";
 import { renderMermaid } from "./mermaid";
+
+function flattenOutline(items: OutlineItem[]): OutlineItem[] {
+  return items.flatMap((item) => [item, ...flattenOutline(item.children)]);
+}
+
+interface TextSegment {
+  from: number;
+  offset: number;
+  text: string;
+}
+
+function documentText(document: ProseMirrorNode) {
+  const segments: TextSegment[] = [];
+  let text = "";
+  let priorEnd: number | null = null;
+  document.descendants((node, position) => {
+    if (!node.isText || !node.text) return;
+    if (priorEnd !== null && position > priorEnd) text += "\n";
+    segments.push({ from: position, offset: text.length, text: node.text });
+    text += node.text;
+    priorEnd = position + node.text.length;
+  });
+  return { segments, text };
+}
+
+function nthMatch(text: string, query: string, occurrence: number) {
+  let from = 0;
+  for (let index = 0; index <= occurrence; index += 1) {
+    const match = text.indexOf(query, from);
+    if (match < 0) return null;
+    if (index === occurrence) return match;
+    from = match + query.length;
+  }
+  return null;
+}
+
+function documentPosition(segments: TextSegment[], offset: number) {
+  for (const segment of segments) {
+    if (offset <= segment.offset + segment.text.length) {
+      return segment.from + Math.max(0, offset - segment.offset);
+    }
+  }
+  return segments.at(-1)?.from ?? 1;
+}
 
 export function VisualEditor({
   value,
@@ -13,12 +62,21 @@ export function VisualEditor({
   focusMode = false,
   typewriterMode = false,
   onImageUpload,
+  resolveImageUrl,
+  documentPath = null,
 }: EditorProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const crepeRef = useRef<Crepe | null>(null);
-  const initialValueRef = useRef(value);
+  const [initialDocument] = useState(() => splitFrontMatter(value));
+  const initialValueRef = useRef(initialDocument.body);
   const latestValueRef = useRef(value);
   const markdownRef = useRef(value);
+  const bodyRef = useRef(initialDocument.body);
+  const frontMatterPrefixRef = useRef(initialDocument.prefix);
+  const frontMatterRef = useRef(initialDocument.frontMatter);
+  const frontMatterInputRef = useRef<HTMLTextAreaElement>(null);
+  const [frontMatter, setFrontMatter] = useState(initialDocument.frontMatter);
+  const [editorError, setEditorError] = useState<string | null>(null);
   const onChangeRef = useRef(onChange);
   const applyingRef = useRef(false);
 
@@ -29,6 +87,38 @@ export function VisualEditor({
   useEffect(() => {
     onChangeRef.current = onChange;
   }, [onChange]);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const updateActiveBlock = () => {
+      const editor = root.querySelector<HTMLElement>(".ProseMirror");
+      const anchor = window.getSelection()?.anchorNode;
+      if (!editor || !anchor || !editor.contains(anchor)) return;
+      let active = anchor.nodeType === Node.ELEMENT_NODE
+        ? (anchor as Element)
+        : anchor.parentElement;
+      while (active?.parentElement && active.parentElement !== editor) {
+        active = active.parentElement;
+      }
+      editor.querySelectorAll<HTMLElement>("[data-active-block]").forEach((block) => {
+        delete block.dataset.activeBlock;
+      });
+      if (!(active instanceof HTMLElement)) return;
+      active.dataset.activeBlock = "true";
+      if (typewriterMode) active.scrollIntoView({ block: "center", behavior: "smooth" });
+    };
+    root.addEventListener("keyup", updateActiveBlock);
+    root.addEventListener("mouseup", updateActiveBlock);
+    root.addEventListener("input", updateActiveBlock);
+    document.addEventListener("selectionchange", updateActiveBlock);
+    return () => {
+      root.removeEventListener("keyup", updateActiveBlock);
+      root.removeEventListener("mouseup", updateActiveBlock);
+      root.removeEventListener("input", updateActiveBlock);
+      document.removeEventListener("selectionchange", updateActiveBlock);
+    };
+  }, [focusMode, typewriterMode]);
 
   useEffect(() => {
     if (!rootRef.current) return;
@@ -67,6 +157,7 @@ export function VisualEditor({
           ? {
               [Crepe.Feature.ImageBlock]: {
                 onUpload: onImageUpload,
+                proxyDomURL: resolveImageUrl,
               },
             }
           : {}),
@@ -75,19 +166,30 @@ export function VisualEditor({
     crepe.on((listener) => {
       listener.markdownUpdated((_context, markdown, previous) => {
         if (!applyingRef.current && markdown !== previous) {
-          markdownRef.current = markdown;
-          onChangeRef.current(markdown);
+          bodyRef.current = markdown;
+          markdownRef.current = frontMatterPrefixRef.current + markdown;
+          onChangeRef.current(markdownRef.current);
         }
       });
     });
 
     let adapter: EditorAdapter | null = null;
+    let disposed = false;
     void crepe.create().then(() => {
+      if (disposed) {
+        void crepe.destroy();
+        return;
+      }
       crepeRef.current = crepe;
-      if (latestValueRef.current !== markdownRef.current) {
+      const latest = splitFrontMatter(latestValueRef.current);
+      frontMatterPrefixRef.current = latest.prefix;
+      frontMatterRef.current = latest.frontMatter;
+      bodyRef.current = latest.body;
+      setFrontMatter(latest.frontMatter);
+      markdownRef.current = latestValueRef.current;
+      if (latest.body !== initialValueRef.current) {
         applyingRef.current = true;
-        markdownRef.current = latestValueRef.current;
-        crepe.editor.action(replaceAll(latestValueRef.current));
+        crepe.editor.action(replaceAll(latest.body));
         queueMicrotask(() => {
           applyingRef.current = false;
         });
@@ -96,9 +198,14 @@ export function VisualEditor({
         getMarkdown: () => markdownRef.current,
         setMarkdown: (next) => {
           if (next === markdownRef.current) return;
+          const parsed = splitFrontMatter(next);
           applyingRef.current = true;
           markdownRef.current = next;
-          crepe.editor.action(replaceAll(next));
+          bodyRef.current = parsed.body;
+          frontMatterPrefixRef.current = parsed.prefix;
+          frontMatterRef.current = parsed.frontMatter;
+          setFrontMatter(parsed.frontMatter);
+          crepe.editor.action(replaceAll(parsed.body));
           queueMicrotask(() => {
             applyingRef.current = false;
           });
@@ -107,28 +214,149 @@ export function VisualEditor({
           const editable = rootRef.current?.querySelector<HTMLElement>("[contenteditable=true]");
           editable?.focus();
         },
-        getCursor: () => ({ line: 1, column: 1 }),
+        getCursor: () => {
+          const frontMatterInput = frontMatterInputRef.current;
+          if (frontMatterInput && document.activeElement === frontMatterInput) {
+            const beforeCursor = frontMatterInput.value.slice(0, frontMatterInput.selectionStart);
+            const lines = beforeCursor.split(/\r?\n/);
+            return {
+              line: lines.length + 1,
+              column: (lines.at(-1)?.length ?? 0) + 1,
+            };
+          }
+          const view = crepe.editor.ctx.get(editorViewCtx);
+          const serializer = crepe.editor.ctx.get(serializerCtx);
+          const beforeCursor = serializer(
+            view.state.doc.cut(0, view.state.selection.head),
+          ).replace(/\n+$/, "");
+          const lines = beforeCursor.split("\n");
+          const frontMatterLines = frontMatterPrefixRef.current
+            ? frontMatterPrefixRef.current.split(/\r?\n/).length - 1
+            : 0;
+          return {
+            line: frontMatterLines + lines.length,
+            column: (lines.at(-1)?.length ?? 0) + 1,
+          };
+        },
+        navigateToLine: (line) => {
+          const headings = rootRef.current?.querySelectorAll<HTMLElement>(
+            ".ProseMirror h1, .ProseMirror h2, .ProseMirror h3, .ProseMirror h4, .ProseMirror h5, .ProseMirror h6",
+          );
+          const index = flattenOutline(buildOutline(markdownRef.current)).findIndex(
+            (item) => item.line === line,
+          );
+          const heading = index >= 0 ? headings?.item(index) : null;
+          heading?.scrollIntoView({ block: "center", behavior: "smooth" });
+          heading?.focus();
+        },
+        countMatches: (query) => {
+          if (!query) return 0;
+          const view = crepe.editor.ctx.get(editorViewCtx);
+          const frontMatterMatches = frontMatterRef.current
+            ? frontMatterRef.current.split(query).length - 1
+            : 0;
+          return frontMatterMatches + documentText(view.state.doc).text.split(query).length - 1;
+        },
+        revealMatch: (query, occurrence) => {
+          if (!query) return;
+          const frontMatter = frontMatterRef.current ?? "";
+          const frontMatterMatches = frontMatter
+            ? frontMatter.split(query).length - 1
+            : 0;
+          if (occurrence < frontMatterMatches) {
+            const match = nthMatch(frontMatter, query, occurrence);
+            if (match !== null) {
+              frontMatterInputRef.current?.setSelectionRange(match, match + query.length);
+              frontMatterInputRef.current?.scrollIntoView?.({ block: "nearest" });
+            }
+            return;
+          }
+          const view = crepe.editor.ctx.get(editorViewCtx);
+          const { segments, text } = documentText(view.state.doc);
+          const match = nthMatch(text, query, occurrence - frontMatterMatches);
+          if (match === null) return;
+          const from = documentPosition(segments, match);
+          const to = documentPosition(segments, match + query.length);
+          view.dispatch(
+            view.state.tr
+              .setSelection(TextSelection.create(view.state.doc, from, to))
+              .scrollIntoView(),
+          );
+        },
+        replaceAllMatches: (query, replacement) => {
+          if (!query) return;
+          const frontMatter = frontMatterRef.current;
+          const nextFrontMatter = frontMatter?.split(query).join(replacement) ?? null;
+          const frontMatterChanged = nextFrontMatter !== frontMatter;
+          if (frontMatterChanged && nextFrontMatter !== null) {
+            frontMatterRef.current = nextFrontMatter;
+            frontMatterPrefixRef.current = `---\n${nextFrontMatter}\n---\n`;
+            setFrontMatter(nextFrontMatter);
+          }
+          const view = crepe.editor.ctx.get(editorViewCtx);
+          const { segments, text } = documentText(view.state.doc);
+          const ranges: Array<{ from: number; to: number }> = [];
+          let offset = 0;
+          while ((offset = text.indexOf(query, offset)) >= 0) {
+            ranges.push({
+              from: documentPosition(segments, offset),
+              to: documentPosition(segments, offset + query.length),
+            });
+            offset += query.length;
+          }
+          if (!ranges.length) {
+            if (frontMatterChanged) {
+              markdownRef.current = frontMatterPrefixRef.current + bodyRef.current;
+              onChangeRef.current(markdownRef.current);
+            }
+            return;
+          }
+          let transaction = view.state.tr;
+          for (const range of ranges.reverse()) {
+            transaction = transaction.insertText(replacement, range.from, range.to);
+          }
+          view.dispatch(transaction);
+        },
       };
       if (adapterRef) adapterRef.current = adapter;
+    }).catch((error: unknown) => {
+      if (!disposed) {
+        setEditorError(error instanceof Error ? error.message : String(error));
+      }
     });
 
     return () => {
+      disposed = true;
       if (adapterRef && adapterRef.current === adapter) adapterRef.current = null;
       crepeRef.current = null;
       void crepe.destroy();
     };
-  }, [adapterRef, onImageUpload]);
+  }, [adapterRef, documentPath, onImageUpload, resolveImageUrl]);
 
   useEffect(() => {
     const crepe = crepeRef.current;
     if (!crepe || markdownRef.current === value) return;
+    const parsed = splitFrontMatter(value);
     applyingRef.current = true;
     markdownRef.current = value;
-    crepe.editor.action(replaceAll(value));
+    bodyRef.current = parsed.body;
+    frontMatterPrefixRef.current = parsed.prefix;
+    frontMatterRef.current = parsed.frontMatter;
+    setFrontMatter(parsed.frontMatter);
+    crepe.editor.action(replaceAll(parsed.body));
     queueMicrotask(() => {
       applyingRef.current = false;
     });
   }, [value]);
+
+  const updateFrontMatter = (next: string) => {
+    const prefix = `---\n${next}\n---\n`;
+    setFrontMatter(next);
+    frontMatterRef.current = next;
+    frontMatterPrefixRef.current = prefix;
+    markdownRef.current = prefix + bodyRef.current;
+    onChangeRef.current(markdownRef.current);
+  };
 
   return (
     <div
@@ -136,7 +364,25 @@ export function VisualEditor({
       className="visual-editor milkdown-theme-nord"
       data-focus-mode={focusMode || undefined}
       data-typewriter-mode={typewriterMode || undefined}
-      ref={rootRef}
-    />
+    >
+      {frontMatter === null ? (
+        <button className="frontmatter-add" onClick={() => updateFrontMatter("")}>
+          + Front Matter
+        </button>
+      ) : (
+        <label className="frontmatter-panel">
+          <span>YAML Front Matter</span>
+          <textarea
+            ref={frontMatterInputRef}
+            aria-label="YAML Front Matter"
+            spellCheck={false}
+            value={frontMatter}
+            onChange={(event) => updateFrontMatter(event.target.value)}
+          />
+        </label>
+      )}
+      {editorError ? <div role="alert">可视化编辑器启动失败：{editorError}</div> : null}
+      <div className="visual-editor-surface" ref={rootRef} />
+    </div>
   );
 }

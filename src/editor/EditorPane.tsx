@@ -13,6 +13,8 @@ interface EditorPaneProps {
   focusMode?: boolean;
   typewriterMode?: boolean;
   onImageUpload?: (file: File) => Promise<string>;
+  resolveImageUrl?: (url: string) => Promise<string> | string;
+  documentPath?: string | null;
   theme?: "light" | "dark";
 }
 

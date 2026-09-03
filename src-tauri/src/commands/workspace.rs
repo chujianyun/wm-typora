@@ -16,6 +16,13 @@ pub struct WorkspaceEntry {
     pub children: Vec<WorkspaceEntry>,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkspaceSnapshot {
+    pub path: String,
+    pub entries: Vec<WorkspaceEntry>,
+}
+
 fn ignored_directory(name: &str) -> bool {
     name.starts_with('.') || matches!(name, "node_modules" | "dist" | "build" | "target" | ".git")
 }

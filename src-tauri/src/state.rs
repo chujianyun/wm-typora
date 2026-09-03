@@ -6,13 +6,13 @@ use std::{
 
 #[derive(Default)]
 pub struct AccessState {
-    roots: Mutex<Vec<PathBuf>>,
+    files: Mutex<Vec<PathBuf>>,
+    directories: Mutex<Vec<PathBuf>>,
 }
 
 impl AccessState {
-    pub fn grant(&self, path: impl AsRef<Path>) -> NativeResult<PathBuf> {
-        let path = path.as_ref();
-        let canonical = if path.exists() {
+    fn normalize_file(path: &Path) -> NativeResult<PathBuf> {
+        let normalized = if path.exists() {
             path.canonicalize()
                 .map_err(|error| NativeError::io(error, path))?
         } else {
@@ -22,10 +22,35 @@ impl AccessState {
             parent
                 .canonicalize()
                 .map_err(|error| NativeError::io(error, parent))?
+                .join(path.file_name().ok_or_else(|| {
+                    NativeError::new("invalid_path", "The selected path has no file name").at(path)
+                })?)
         };
-        self.roots
+        Ok(normalized)
+    }
+
+    pub fn grant_file(&self, path: impl AsRef<Path>) -> NativeResult<PathBuf> {
+        let canonical = Self::normalize_file(path.as_ref())?;
+        self.files
             .lock()
-            .expect("access roots poisoned")
+            .expect("access files poisoned")
+            .push(canonical.clone());
+        Ok(canonical)
+    }
+
+    pub fn grant_directory(&self, path: impl AsRef<Path>) -> NativeResult<PathBuf> {
+        let path = path.as_ref();
+        let canonical = path
+            .canonicalize()
+            .map_err(|error| NativeError::io(error, path))?;
+        if !canonical.is_dir() {
+            return Err(
+                NativeError::new("invalid_path", "The selected path is not a directory").at(path),
+            );
+        }
+        self.directories
+            .lock()
+            .expect("access directories poisoned")
             .push(canonical.clone());
         Ok(canonical)
     }
@@ -47,10 +72,15 @@ impl AccessState {
             })?)
         };
 
-        let roots = self.roots.lock().expect("access roots poisoned");
-        if roots
-            .iter()
-            .any(|root| candidate == *root || candidate.starts_with(root))
+        let files = self.files.lock().expect("access files poisoned");
+        let directories = self
+            .directories
+            .lock()
+            .expect("access directories poisoned");
+        if files.contains(&candidate)
+            || directories
+                .iter()
+                .any(|root| candidate == *root || candidate.starts_with(root))
         {
             Ok(candidate)
         } else {

@@ -22,7 +22,9 @@ export function buildOutline(markdown: string): OutlineItem[] {
   const slugs = new Map<string, number>();
   let fence: string | null = null;
 
-  markdown.split(/\r?\n/).forEach((line, index) => {
+  const { body, prefix } = splitFrontMatter(markdown);
+  const lineOffset = prefix ? prefix.split(/\r?\n/).length - 1 : 0;
+  body.split(/\r?\n/).forEach((line, index) => {
     const fenceMatch = line.match(/^\s*(`{3,}|~{3,})/);
     if (fenceMatch) {
       const marker = fenceMatch[1][0];
@@ -43,7 +45,7 @@ export function buildOutline(markdown: string): OutlineItem[] {
       id: count === 1 ? base : `${base}-${count}`,
       text,
       level,
-      line: index + 1,
+      line: lineOffset + index + 1,
       children: [],
     };
 
@@ -56,3 +58,4 @@ export function buildOutline(markdown: string): OutlineItem[] {
 
   return roots;
 }
+import { splitFrontMatter } from "../document/frontMatter";

@@ -1,6 +1,5 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { open, save } from "@tauri-apps/plugin-dialog";
 import { createBrowserNativeBridge } from "./browserBridge";
 import type {
   CopiedImage,
@@ -11,44 +10,31 @@ import type {
 } from "./types";
 
 class TauriNativeBridge implements NativeBridge {
-  private async grantPath(path: string) {
-    await invoke("grant_path", { path });
-  }
-
   async openFile() {
-    const path = await open({
-      multiple: false,
-      directory: false,
-      filters: [{ name: "Markdown", extensions: ["md", "markdown", "txt"] }],
-    });
-    if (!path) return null;
-    await this.grantPath(path);
-    return this.readFile(path);
+    return invoke<FileSnapshot | null>("open_text_file");
   }
 
   async openWorkspace() {
-    const path = await open({ multiple: false, directory: true });
-    if (!path) return null;
-    await this.grantPath(path);
-    return { path, entries: await this.scanWorkspace(path) };
+    return invoke<{ path: string; entries: WorkspaceEntry[] } | null>("choose_workspace");
   }
 
   readFile(path: string) {
     return invoke<FileSnapshot>("read_text_file", { path });
   }
 
-  writeFileAtomic(path: string, markdown: string) {
-    return invoke<FileWriteResult>("write_text_file_atomic", { path, markdown });
+  writeFileAtomic(path: string, markdown: string, expectedDigest?: string | null) {
+    return invoke<FileWriteResult>("write_text_file_atomic", {
+      path,
+      markdown,
+      expectedDigest,
+    });
   }
 
   async saveFileAs(markdown: string, suggestedName = "Untitled.md") {
-    const path = await save({
-      defaultPath: suggestedName,
-      filters: [{ name: "Markdown", extensions: ["md", "markdown", "txt"] }],
+    return invoke<FileWriteResult | null>("save_text_file_as", {
+      markdown,
+      suggestedName,
     });
-    if (!path) return null;
-    await this.grantPath(path);
-    return this.writeFileAtomic(path, markdown);
   }
 
   scanWorkspace(path: string) {
@@ -67,22 +53,25 @@ class TauriNativeBridge implements NativeBridge {
     });
   }
 
+  resolveImagePath(documentPath: string, imagePath: string) {
+    return invoke<string>("resolve_image_asset", { documentPath, imagePath });
+  }
+
   async exportHtml(html: string, suggestedName = "document.html") {
-    const path = await save({
-      defaultPath: suggestedName,
-      filters: [{ name: "HTML", extensions: ["html"] }],
-    });
-    if (!path) return null;
-    await this.grantPath(path);
-    await invoke("write_export_file", { path, html });
-    return path;
+    return invoke<string | null>("save_export_file_as", { html, suggestedName });
   }
 
   async watchFile(path: string, onChange: (path: string) => void) {
     const unlisten = await listen<{ path: string }>("file-changed", (event) => {
       if (event.payload.path === path) onChange(path);
     });
-    const watchId = await invoke<string>("start_file_watch", { path });
+    let watchId: string;
+    try {
+      watchId = await invoke<string>("start_file_watch", { path });
+    } catch (error) {
+      unlisten();
+      throw error;
+    }
     return async () => {
       unlisten();
       await invoke("stop_file_watch", { path: watchId });

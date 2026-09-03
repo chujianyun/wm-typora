@@ -4,9 +4,9 @@ WTypora 是一个本地优先、单栏低干扰的桌面 Markdown 编辑器。�
 
 ## 开发环境
 
-- Node.js 20 或更高版本（本项目验证环境为 Node.js 26.8.1）
-- npm 10 或更高版本
-- Rust stable 1.77.2 或更高版本
+- Node.js 26 或更高版本（本项目验证环境为 Node.js 26.8.1）
+- npm 11 或更高版本
+- Rust stable 1.88 或更高版本
 - macOS 构建需要 Xcode Command Line Tools
 
 安装并启动桌面开发版：
@@ -61,6 +61,8 @@ macOS 使用 Command；Windows/Linux 使用 Control。
 | 查找 | `Cmd/Ctrl + F` |
 | 切换源码模式 | `Cmd/Ctrl + Shift + M` |
 | 切换侧栏 | `Cmd/Ctrl + Shift + L` |
+| 切换专注模式 | `Cmd/Ctrl + Shift + D` |
+| 切换打字机模式 | `Cmd/Ctrl + Shift + T` |
 
 ## 安全边界
 

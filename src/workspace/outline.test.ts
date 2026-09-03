@@ -45,4 +45,18 @@ describe("buildOutline", () => {
       },
     ]);
   });
+
+  it("ignores YAML comments while preserving body source line numbers", () => {
+    const markdown = ["---", "title: Note", "# Draft metadata", "---", "# Body"].join("\n");
+
+    expect(buildOutline(markdown)).toEqual([
+      {
+        id: "body",
+        text: "Body",
+        level: 1,
+        line: 5,
+        children: [],
+      },
+    ]);
+  });
 });

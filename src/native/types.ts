@@ -39,11 +39,16 @@ export interface NativeBridge {
   openFile(): Promise<FileSnapshot | null>;
   openWorkspace(): Promise<WorkspaceSnapshot | null>;
   readFile(path: string): Promise<FileSnapshot>;
-  writeFileAtomic(path: string, markdown: string): Promise<FileWriteResult>;
+  writeFileAtomic(
+    path: string,
+    markdown: string,
+    expectedDigest?: string | null,
+  ): Promise<FileWriteResult>;
   saveFileAs(markdown: string, suggestedName?: string): Promise<FileWriteResult | null>;
   scanWorkspace(path: string): Promise<WorkspaceEntry[]>;
   copyImage(sourcePath: string, documentPath: string): Promise<CopiedImage>;
   storeImage(fileName: string, bytes: Uint8Array, documentPath: string): Promise<CopiedImage>;
+  resolveImagePath(documentPath: string, imagePath: string): Promise<string>;
   exportHtml(html: string, suggestedName?: string): Promise<string | null>;
   watchFile(path: string, onChange: (path: string) => void): Promise<() => Promise<void>>;
 }

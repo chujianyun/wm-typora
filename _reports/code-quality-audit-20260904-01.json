@@ -1,0 +1,453 @@
+{
+  "project": "WTypora",
+  "risk_level": "standard",
+  "scope": {
+    "description": "2026-09-04 WTypora 设计规格、当前分支全部一方源码、桌面文件能力、安全边界、测试、构建、macOS 打包及本机安装启动",
+    "coverage_percent": 100,
+    "included": [
+      "docs/superpowers/specs/2026-09-04-wtypora-design.md",
+      "docs/superpowers/plans/2026-09-04-wtypora-implementation.md",
+      "src/**",
+      "src-tauri/src/**",
+      "src-tauri/tests/**",
+      "package.json, package-lock.json, Cargo.toml, Cargo.lock, Tauri/Vite/TypeScript/ESLint configuration",
+      "release WTypora.app and WTypora_0.1.0_aarch64.dmg"
+    ],
+    "excluded": [
+      "node_modules and Cargo registry: third-party source",
+      "dist and src-tauri/target internals: generated build output; final bundles were separately verified",
+      "real-world penetration testing: outside static/local safety-audit boundary"
+    ]
+  },
+  "checks": {
+    "A1": {
+      "status": "pass",
+      "evidence": [
+        "Design sections 2.1-2.5 map to src/app, src/document, src/editor, src/export and src-tauri/src/commands; README.md:36-49 records the delivered feature set.",
+        "docs/superpowers/plans/2026-09-04-wtypora-implementation.md provides the implementation-to-verification sequence."
+      ]
+    },
+    "A2": {
+      "status": "pass",
+      "evidence": [
+        "VisualEditor and SourceEditor share EditorAdapter/Markdown, while documentStore owns the persisted baseline and save state.",
+        "68 frontend assertions and 16 Rust integration tests exercise the specified file, editor, conflict, image, export and watcher behavior."
+      ]
+    },
+    "A3": {
+      "status": "pass",
+      "evidence": [
+        "git diff review covers 38 changed first-party files and preserves existing editors, export, preference and workspace modules.",
+        "Final independent review reported no remaining Critical or Important issue and Ready to merge: Yes."
+      ]
+    },
+    "A4": {
+      "status": "pass",
+      "evidence": [
+        "Markdown remains the sole disk interchange format; standard and empty YAML Front Matter are preserved by src/document/frontMatter.ts.",
+        "NativeBridge types retain browser-test and Tauri implementations; Node 26/npm 11/Rust 1.88 requirements match locked dependencies."
+      ]
+    },
+    "B1": {
+      "status": "pass",
+      "evidence": [
+        "src/document/documentStore.ts and src/app/useAppCommands.ts enforce session IDs, save queues, disk digests and explicit state transitions.",
+        "Editor contract tests validate source/visual content, cursor, find/replace, outline and Front Matter behavior."
+      ]
+    },
+    "B2": {
+      "status": "pass",
+      "evidence": [
+        "Tests cover empty Front Matter, unsupported images, hidden/build directories, symlink escapes, duplicate names and missing authorization.",
+        "Mermaid, math, footnote and local-image export paths have success and error/boundary assertions."
+      ]
+    },
+    "B3": {
+      "status": "pass",
+      "evidence": [
+        "Open requests and watcher callbacks are request/session guarded; stale success and stale rejection do not alter the active session.",
+        "File watch setup releases its event listener when native watch creation fails; cleanup stops both listener and native watch."
+      ]
+    },
+    "B4": {
+      "status": "pass",
+      "evidence": [
+        "Errors remain typed across Rust/TypeScript, save failures keep memory content dirty, and command errors are visible/dismissible.",
+        "Review fixes address root races using optimistic digests and atomic destination reservation rather than timing workarounds."
+      ]
+    },
+    "C1": {
+      "status": "pass",
+      "evidence": [
+        "The single-user local app has no account or remote object boundary; Rust enforces OS-dialog file grants and distinguishes individual-file from directory authorization.",
+        "Asset protocol authorization is dynamically limited to the active document's exact assets directory."
+      ]
+    },
+    "C2": {
+      "status": "pass",
+      "evidence": [
+        "Canonical path checks reject traversal and symlink escape; image writes restrict extensions and use create_new collision-safe files.",
+        "HTML sanitization removes scriptable elements/attributes/URLs; Mermaid uses strict mode and print images use authorized asset URLs."
+      ]
+    },
+    "C3": {
+      "status": "pass",
+      "evidence": [
+        "Source/config review found no embedded password, token or private document fixture; the app is local-only and does not upload content.",
+        "Displayed errors include actionable paths but no credential-bearing request or remote response data."
+      ]
+    },
+    "C4": {
+      "status": "pass",
+      "evidence": [
+        "npm audit --omit=dev completed with 0 vulnerabilities.",
+        "package and Cargo locks are committed inputs; CSP and an empty static asset scope constrain WebView capabilities."
+      ]
+    },
+    "C5": {
+      "status": "pass",
+      "evidence": [
+        "No network API, authentication session, CSRF surface or multi-user replay boundary exists in the specified product scope.",
+        "Local abuse resistance is risk-matched through explicit file grants, bounded Mermaid input settings and supported-type filtering."
+      ]
+    },
+    "D1": {
+      "status": "pass",
+      "evidence": [
+        "Rust saves write, sync and atomically rename a unique temporary file; failure cleanup preserves the original destination.",
+        "Existing file permissions are preserved and verified by filesystem integration tests."
+      ]
+    },
+    "D2": {
+      "status": "pass",
+      "evidence": [
+        "Document defaults, nullable path/digest values, UTF-8 content and empty/non-empty YAML Front Matter are explicitly handled and tested.",
+        "No database schema or migration is introduced; persisted Markdown and preference formats remain compatible."
+      ]
+    },
+    "D3": {
+      "status": "pass",
+      "evidence": [
+        "Frontend saves are serialized and use expected-digest compare-and-swap semantics before replacement.",
+        "Eight-thread same-name image integration test proves atomic create_new reservation prevents overwrite under concurrency."
+      ]
+    },
+    "D4": {
+      "status": "pass",
+      "evidence": [
+        "Recovery drafts retain unnamed or failed-write content; discard removes only the matching recovery ID.",
+        "External changes and failed optimistic writes become explicit conflicts without overwriting either local memory or disk silently."
+      ]
+    },
+    "E1": {
+      "status": "pass",
+      "evidence": [
+        "Workspace scanning prunes hidden, dependency and build directories and ignores symlinks; editor statistics and outline operations are linear in document size.",
+        "Save debounce and serialized writes avoid repeated overlapping disk I/O."
+      ]
+    },
+    "E2": {
+      "status": "partial",
+      "evidence": [
+        "Release package measured 15 MB for WTypora.app and 8.4 MB for the DMG; build completed and installed app launched successfully in the bounded verification.",
+        "No pre-existing formal latency/size baseline exists; production build warns that the main JavaScript entry is 2,145.91 kB (CQ-001)."
+      ]
+    },
+    "E3": {
+      "status": "pass",
+      "evidence": [
+        "Editor disposal, menu listeners, file-watch listeners and native watch IDs have explicit cleanup guards.",
+        "Mermaid text/edge limits, 800 ms autosave debounce and collision attempts keep key resources bounded."
+      ]
+    },
+    "E4": {
+      "status": "pass",
+      "evidence": [
+        "The runtime has no required cloud service; native and rendering failures surface locally while preserving Markdown source.",
+        "Mermaid/KaTeX failure paths degrade to visible error/source content instead of losing the rest of the document."
+      ]
+    },
+    "F1": {
+      "status": "pass",
+      "evidence": [
+        "Document, editor, native, workspace and export responsibilities follow design section 4.2 and the existing directory architecture.",
+        "File operations remain behind NativeBridge and Rust commands rather than leaking into editor components."
+      ]
+    },
+    "F2": {
+      "status": "pass",
+      "evidence": [
+        "Shared frontMatter and imageUrl helpers remove duplicated parsing/path rules; save coordination uses one command hook and one queue.",
+        "No new framework or parallel persistence mechanism was introduced."
+      ]
+    },
+    "F3": {
+      "status": "pass",
+      "evidence": [
+        "TypeScript and Rust control flow use typed results, descriptive session/digest names and explicit early returns for stale work.",
+        "ESLint and Clippy with warnings denied both complete successfully."
+      ]
+    },
+    "F4": {
+      "status": "pass",
+      "evidence": [
+        "NativeBridge has a replaceable in-memory implementation and EditorAdapter allows both editors to share contract tests.",
+        "Export image resolution is injected, making browser export and WebView printing independently testable."
+      ]
+    },
+    "F5": {
+      "status": "pass",
+      "evidence": [
+        "npm run lint -- --max-warnings 0 and cargo clippy -- -D warnings report no warning, dead-code or debug-build blocker.",
+        "git diff --check reports no whitespace error."
+      ]
+    },
+    "G1": {
+      "status": "pass",
+      "evidence": [
+        "npm test -- --run: 14 files and 68 tests passed, exit 0.",
+        "cargo test --locked: 15 filesystem and 1 watcher tests passed, exit 0."
+      ]
+    },
+    "G2": {
+      "status": "pass",
+      "evidence": [
+        "New tests directly constrain save ordering, async-open freshness, error UI, visual cursor/find/outline, printing, asset URLs and Front Matter.",
+        "Rust tests directly constrain digest conflicts, file-vs-directory grants, symlink escapes and concurrent image naming."
+      ]
+    },
+    "G3": {
+      "status": "pass",
+      "evidence": [
+        "Concurrency, stale async work, partial failure, authorization, XSS sanitation, collision and recovery paths all have targeted assertions.",
+        "Final review independently traced high-value data flows after the tests passed."
+      ]
+    },
+    "G4": {
+      "status": "pass",
+      "evidence": [
+        "Regression evidence combines frontend component/unit tests, Rust integration tests, static analysis, production packaging, signature checks and a live launch.",
+        "Assertions verify content/state/hash/authorization outcomes rather than relying on test counts alone."
+      ]
+    },
+    "H1": {
+      "status": "pass",
+      "evidence": [
+        "npm run tauri build produced an arm64 WTypora.app and WTypora_0.1.0_aarch64.dmg; deep strict codesign verification passed.",
+        "Installed /Applications/WTypora.app version 0.1.0 launched as PID 7412 and matched release binary/icon SHA-256 values."
+      ]
+    },
+    "H2": {
+      "status": "pass",
+      "evidence": [
+        "Typed native errors preserve code/message/path; save and command failures remain visible and dismissible in the UI.",
+        "No secrets or document contents are emitted by the verified build/install commands."
+      ]
+    },
+    "H3": {
+      "status": "pass",
+      "evidence": [
+        "README.md:5-34 records toolchain, install, development and verification commands.",
+        "The previous installed app was moved recoverably to /Users/wuming/.Trash/WTypora-stale-20260904-022627.app before replacement."
+      ]
+    },
+    "H4": {
+      "status": "pass",
+      "evidence": [
+        "This JSON records every A1-H4 checkpoint, reproducible commands, two low-risk findings and the generated evaluator result.",
+        "Final review status is Ready to merge: Yes; no Critical, High or Important issue remains."
+      ]
+    }
+  },
+  "findings": [
+    {
+      "id": "CQ-001",
+      "severity": "low",
+      "status": "open",
+      "dimension": "E",
+      "critical_path": false,
+      "location": "/Users/wuming/Documents/Coding/my/wtypora/.worktrees/wtypora-implementation/vite.config.ts:4",
+      "evidence": "Vite production build succeeds but reports a 2,145.91 kB main JavaScript entry above the 500 kB advisory threshold.",
+      "impact": "Cold start and parse cost may grow for very resource-constrained machines; correctness and local data integrity are unaffected.",
+      "verification": [
+        "npm run build (exit 0; inspect Vite size report)"
+      ],
+      "recommendation": "Future performance work should lazy-load heavy editor/diagram modules and establish a startup/size baseline."
+    },
+    {
+      "id": "CQ-002",
+      "severity": "low",
+      "status": "accepted",
+      "dimension": "H",
+      "critical_path": false,
+      "location": "/Users/wuming/Documents/Coding/my/wtypora/.worktrees/wtypora-implementation/src-tauri/tauri.conf.json:45",
+      "evidence": "The local package is ad-hoc signed and passes deep strict verification, but it is not Apple Developer ID signed or notarized.",
+      "impact": "The requested local installation works; public distribution to other Macs would require a release identity and notarization credentials.",
+      "verification": [
+        "codesign --verify --deep --strict WTypora.app (exit 0)",
+        "codesign -dv --verbose=4 WTypora.app reports Signature=adhoc"
+      ],
+      "recommendation": "Before public distribution, configure Developer ID Application signing and Apple notarization."
+    }
+  ],
+  "verification_commands": [
+    {
+      "category": "test",
+      "command": "npm test -- --run",
+      "exit_code": 0,
+      "required": true,
+      "result": "14 test files, 68 tests passed"
+    },
+    {
+      "category": "typecheck",
+      "command": "npm run typecheck",
+      "exit_code": 0,
+      "required": true,
+      "result": "TypeScript project build completed without diagnostics"
+    },
+    {
+      "category": "lint",
+      "command": "npm run lint",
+      "exit_code": 0,
+      "required": true,
+      "result": "ESLint completed with max warnings 0"
+    },
+    {
+      "category": "build",
+      "command": "npm run build",
+      "exit_code": 0,
+      "required": true,
+      "result": "Vite production build succeeded; size advisory recorded as CQ-001"
+    },
+    {
+      "category": "dependency-audit",
+      "command": "npm audit --omit=dev",
+      "exit_code": 0,
+      "required": true,
+      "result": "0 vulnerabilities"
+    },
+    {
+      "category": "format",
+      "command": "cargo fmt -- --check",
+      "exit_code": 0,
+      "required": true,
+      "result": "Rust formatting check passed"
+    },
+    {
+      "category": "lint",
+      "command": "cargo clippy --locked --all-targets -- -D warnings",
+      "exit_code": 0,
+      "required": true,
+      "result": "Clippy passed with warnings denied"
+    },
+    {
+      "category": "test",
+      "command": "cargo test --locked",
+      "exit_code": 0,
+      "required": true,
+      "result": "15 filesystem and 1 watcher integration tests passed"
+    },
+    {
+      "category": "compatibility",
+      "command": "cargo +1.88.0 check --locked",
+      "exit_code": 0,
+      "required": true,
+      "result": "Declared minimum Rust toolchain compiles locked dependencies"
+    },
+    {
+      "category": "diff",
+      "command": "git diff --check",
+      "exit_code": 0,
+      "required": true,
+      "result": "No whitespace errors"
+    },
+    {
+      "category": "package",
+      "command": "npm run tauri build",
+      "exit_code": 0,
+      "required": true,
+      "result": "WTypora.app and WTypora_0.1.0_aarch64.dmg produced"
+    },
+    {
+      "category": "signature",
+      "command": "codesign --verify --deep --strict src-tauri/target/release/bundle/macos/WTypora.app",
+      "exit_code": 0,
+      "required": true,
+      "result": "Ad-hoc hardened runtime signature valid"
+    },
+    {
+      "category": "install-smoke",
+      "command": "install /Applications/WTypora.app; launch; verify PID, version and release/installed SHA-256",
+      "exit_code": 0,
+      "required": true,
+      "result": "Version 0.1.0 launched as PID 7412; binary and icon hashes match"
+    }
+  ],
+  "gate_result": {
+    "result": "PASS",
+    "risk_level": "standard",
+    "score": 98.5,
+    "max_score": 100,
+    "minimum_score": 85,
+    "dimensions": {
+      "A": {
+        "name": "需求忠实度与功能保护",
+        "score": 15.0,
+        "max": 15,
+        "minimum": 13,
+        "passed": true
+      },
+      "B": {
+        "name": "逻辑正确性与边界异常",
+        "score": 20.0,
+        "max": 20,
+        "minimum": 17,
+        "passed": true
+      },
+      "C": {
+        "name": "安全、隐私与依赖",
+        "score": 15.0,
+        "max": 15,
+        "minimum": 13,
+        "passed": true
+      },
+      "D": {
+        "name": "数据完整性与并发",
+        "score": 15.0,
+        "max": 15,
+        "minimum": 13,
+        "passed": true
+      },
+      "E": {
+        "name": "性能、资源与韧性",
+        "score": 8.5,
+        "max": 10,
+        "minimum": 8,
+        "passed": true
+      },
+      "F": {
+        "name": "架构与可维护性",
+        "score": 10.0,
+        "max": 10,
+        "minimum": 8,
+        "passed": true
+      },
+      "G": {
+        "name": "测试有效性与回归证据",
+        "score": 10.0,
+        "max": 10,
+        "minimum": 9,
+        "passed": true
+      },
+      "H": {
+        "name": "可运维性与交付就绪",
+        "score": 5.0,
+        "max": 5,
+        "minimum": 4,
+        "passed": true
+      }
+    },
+    "blockers": [],
+    "evidence_gaps": []
+  }
+}

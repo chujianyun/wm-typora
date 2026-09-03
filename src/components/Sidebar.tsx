@@ -7,10 +7,11 @@ interface SidebarProps {
   entries: WorkspaceEntry[];
   outline: OutlineItem[];
   expandedPaths: Set<string>;
+  activeOutlineId: string | null;
   onTab(tab: SidebarTab): void;
   onOpenFile(path: string): void;
   onToggleDirectory(path: string): void;
-  onNavigate(id: string): void;
+  onNavigate(item: OutlineItem): void;
 }
 
 function FileEntries({ entries, expanded, onOpenFile, onToggleDirectory }: {
@@ -46,15 +47,15 @@ function FileEntries({ entries, expanded, onOpenFile, onToggleDirectory }: {
   );
 }
 
-function OutlineEntries({ items, onNavigate }: { items: OutlineItem[]; onNavigate(id: string): void }) {
+function OutlineEntries({ items, activeId, onNavigate }: { items: OutlineItem[]; activeId: string | null; onNavigate(item: OutlineItem): void }) {
   return (
     <ul className="outline-list">
       {items.map((item) => (
         <li key={`${item.line}-${item.id}`}>
-          <button style={{ paddingLeft: `${(item.level - 1) * 12 + 10}px` }} onClick={() => onNavigate(item.id)}>
+          <button aria-current={activeId === item.id ? "location" : undefined} style={{ paddingLeft: `${(item.level - 1) * 12 + 10}px` }} onClick={() => onNavigate(item)}>
             {item.text}
           </button>
-          {item.children.length ? <OutlineEntries items={item.children} onNavigate={onNavigate} /> : null}
+          {item.children.length ? <OutlineEntries items={item.children} activeId={activeId} onNavigate={onNavigate} /> : null}
         </li>
       ))}
     </ul>
@@ -79,7 +80,7 @@ export function Sidebar(props: SidebarProps) {
             />
           ) : <p className="empty-state">打开文件夹后在这里浏览文档</p>
         ) : props.outline.length ? (
-          <OutlineEntries items={props.outline} onNavigate={props.onNavigate} />
+          <OutlineEntries items={props.outline} activeId={props.activeOutlineId} onNavigate={props.onNavigate} />
         ) : <p className="empty-state">添加标题以生成大纲</p>}
       </div>
     </aside>

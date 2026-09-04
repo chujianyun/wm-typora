@@ -3,7 +3,7 @@
 - 日期：2026-09-04
 - 状态：已修复、已打包、已安装并启动本机版本
 - 分支：`main`
-- 发布状态：已本地提交；`origin/main` 已不存在，未擅自重建或覆盖远端分支
+- 发布状态：已提交并推送到 `origin/main`
 
 ## 问题概述
 
@@ -86,10 +86,10 @@
 | macOS DMG | `npm run tauri build -- --bundles dmg` | 首次 Finder 美化阶段偶发失败，清理残留挂载后重试通过 |
 | 应用签名 | `codesign --verify --deep --strict` | `.app` 验证通过，使用项目配置的本地临时签名，未公证 |
 | 发布包哈希 | SHA-256 | 可执行文件 `96aef581f2538d15ffb125ff4e3147e5696024a1dcb155e3750ab352e98e16c6`；DMG `cabd871a817fa8952743a5a9f196965a67cd155b4812c0592d52677f24ad131c` |
-| 本机安装 | `/Applications/WTypora.app` | 与发布包可执行文件哈希一致，签名验证通过，启动后进程正常存活 |
+| 本机安装 | `/Applications/WTypora.app` | 已重新安装；旧版本已备份到废纸篓。安装后与发布包可执行文件哈希一致，签名验证通过，启动后进程正常存活 |
+| Git 推送 | `git push -u origin main` | 已通过 SSH 创建并推送 `origin/main`，本地与远端均指向修复提交 |
 
 ## 已知限制
 
 - 前端主入口 chunk 约 2.15 MB，Vite 会提示大 chunk 警告；本次改动未新增该问题，也不影响本次功能。
 - 当前应用包为本地临时签名且未做 Apple 公证，适合本机安装验证，不等同于正式对外分发签名。
-- Git 远端没有可用的 `origin/main` 分支，因此本次不会自动推送；需要先确认远端恢复策略。

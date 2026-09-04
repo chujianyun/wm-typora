@@ -1,4 +1,4 @@
-import { createMemoryNativeBridge } from "./browserBridge";
+import { createBrowserNativeBridge, createMemoryNativeBridge } from "./browserBridge";
 
 describe("memory NativeBridge", () => {
   it("reads and atomically replaces a seeded UTF-8 document", async () => {
@@ -57,5 +57,55 @@ describe("memory NativeBridge", () => {
         ],
       },
     ]);
+  });
+});
+
+describe("browser NativeBridge", () => {
+  it("opens a selected browser folder and makes its Markdown files readable", async () => {
+    const guide = new File(["# Guide"], "guide.md", { type: "text/markdown" });
+    const image = new File(["binary"], "image.png", { type: "image/png" });
+    Object.defineProperty(guide, "webkitRelativePath", { value: "notes/guide.md" });
+    Object.defineProperty(image, "webkitRelativePath", { value: "notes/image.png" });
+    const click = vi.spyOn(HTMLInputElement.prototype, "click").mockImplementation(function (this: HTMLInputElement) {
+      Object.defineProperty(this, "files", { value: [guide, image], configurable: true });
+      this.dispatchEvent(new Event("change"));
+    });
+    const bridge = createBrowserNativeBridge();
+
+    await expect(bridge.openWorkspace()).resolves.toEqual({
+      path: "notes",
+      entries: [{ name: "guide.md", path: "notes/guide.md", kind: "file" }],
+    });
+    await expect(bridge.readFile("notes/guide.md")).resolves.toMatchObject({
+      name: "guide.md",
+      markdown: "# Guide",
+    });
+
+    click.mockRestore();
+  });
+
+  it("downloads changes when saving a browser-selected document", async () => {
+    const note = new File(["first"], "note.md", { type: "text/markdown", lastModified: 7 });
+    const inputClick = vi.spyOn(HTMLInputElement.prototype, "click").mockImplementation(function (this: HTMLInputElement) {
+      Object.defineProperty(this, "files", { value: [note], configurable: true });
+      this.dispatchEvent(new Event("change"));
+    });
+    const linkClick = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+    const createObjectURL = vi.fn(() => "blob:wtypora-test");
+    const revokeObjectURL = vi.fn();
+    Object.defineProperty(URL, "createObjectURL", { value: createObjectURL, configurable: true });
+    Object.defineProperty(URL, "revokeObjectURL", { value: revokeObjectURL, configurable: true });
+    const bridge = createBrowserNativeBridge();
+    const opened = await bridge.openFile();
+
+    await expect(
+      bridge.writeFileAtomic("note.md", "updated", opened?.digest),
+    ).resolves.toMatchObject({ path: "note.md", digest: expect.any(String) });
+    expect(linkClick).toHaveBeenCalledOnce();
+    expect(createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:wtypora-test");
+
+    inputClick.mockRestore();
+    linkClick.mockRestore();
   });
 });

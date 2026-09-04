@@ -45,7 +45,7 @@ function asSnapshot(path: string, file: MemoryFile): FileSnapshot {
   };
 }
 
-function workspaceEntries(files: Map<string, MemoryFile>, directory: string): WorkspaceEntry[] {
+function workspaceEntries(files: ReadonlyMap<string, unknown>, directory: string): WorkspaceEntry[] {
   const prefix = directory.endsWith("/") ? directory : `${directory}/`;
   const directFiles: WorkspaceEntry[] = [];
   const childDirectories = new Set<string>();
@@ -159,6 +159,22 @@ export function createMemoryNativeBridge(options: MemoryBridgeOptions = {}): Nat
 
 export function createBrowserNativeBridge(): NativeBridge {
   const bridge = createMemoryNativeBridge();
+  const browserFiles = new Map<string, MemoryFile>();
+
+  const rememberFile = async (path: string, file: File) => {
+    const contents = await file.text();
+    const stored = { contents, modifiedAt: file.lastModified || Date.now() };
+    browserFiles.set(path, stored);
+    return asSnapshot(path, stored);
+  };
+
+  const download = (contents: string, fileName: string, type: string) => {
+    const link = document.createElement("a");
+    link.download = fileName;
+    link.href = URL.createObjectURL(new Blob([contents], { type }));
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
 
   return {
     ...bridge,
@@ -170,32 +186,57 @@ export function createBrowserNativeBridge(): NativeBridge {
         input.addEventListener("change", async () => {
           const file = input.files?.[0];
           if (!file) return resolve(null);
-          const markdown = await file.text();
-          resolve({
-            path: file.name,
-            name: file.name,
-            markdown,
-            modifiedAt: file.lastModified,
-            digest: digest(markdown),
-          });
+          resolve(await rememberFile(file.name, file));
         });
+        input.addEventListener("cancel", () => resolve(null), { once: true });
         input.click();
       }),
-    async saveFileAs(markdown, suggestedName = "Untitled.md") {
-      const link = document.createElement("a");
-      link.download = suggestedName;
-      link.href = URL.createObjectURL(new Blob([markdown], { type: "text/markdown;charset=utf-8" }));
-      link.click();
-      URL.revokeObjectURL(link.href);
+    openWorkspace: () =>
+      new Promise<WorkspaceSnapshot | null>((resolve) => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.multiple = true;
+        input.setAttribute("webkitdirectory", "");
+        input.addEventListener("change", async () => {
+          const files = Array.from(input.files ?? []);
+          if (!files.length) return resolve(null);
+          const firstRelativePath = files[0].webkitRelativePath || files[0].name;
+          const root = firstRelativePath.split("/")[0] || "Selected folder";
+          browserFiles.clear();
+          await Promise.all(files.map((file) => {
+            const relativePath = file.webkitRelativePath || `${root}/${file.name}`;
+            return rememberFile(relativePath, file);
+          }));
+          resolve({ path: root, entries: workspaceEntries(browserFiles, root) });
+        });
+        input.addEventListener("cancel", () => resolve(null), { once: true });
+        input.click();
+      }),
+    async readFile(path) {
+      const file = browserFiles.get(path);
+      return file ? asSnapshot(path, file) : bridge.readFile(path);
+    },
+    async writeFileAtomic(path, markdown, expectedDigest) {
+      const existing = browserFiles.get(path);
+      if (expectedDigest && (!existing || digest(existing.contents) !== expectedDigest)) {
+        throw { code: "external_change", message: "File changed in this browser session", path };
+      }
       const modifiedAt = Date.now();
+      download(markdown, nameFromPath(path), "text/markdown;charset=utf-8");
+      browserFiles.set(path, { contents: markdown, modifiedAt });
+      return { path, modifiedAt, digest: digest(markdown) };
+    },
+    async saveFileAs(markdown, suggestedName = "Untitled.md") {
+      download(markdown, suggestedName, "text/markdown;charset=utf-8");
+      const modifiedAt = Date.now();
+      browserFiles.set(suggestedName, { contents: markdown, modifiedAt });
       return { path: suggestedName, modifiedAt, digest: digest(markdown) };
     },
+    async scanWorkspace(path) {
+      return browserFiles.size ? workspaceEntries(browserFiles, path) : bridge.scanWorkspace(path);
+    },
     async exportHtml(html, suggestedName = "document.html") {
-      const link = document.createElement("a");
-      link.download = suggestedName;
-      link.href = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
-      link.click();
-      URL.revokeObjectURL(link.href);
+      download(html, suggestedName, "text/html;charset=utf-8");
       return suggestedName;
     },
   };

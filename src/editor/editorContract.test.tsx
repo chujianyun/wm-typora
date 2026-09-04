@@ -47,6 +47,13 @@ describe("source editor navigation", () => {
 });
 
 describe("visual editor initialization", () => {
+  it("starts directly in the document body when YAML front matter is absent", async () => {
+    render(<VisualEditor value="# Body" onChange={() => undefined} />);
+
+    expect(screen.queryByRole("button", { name: "+ Front Matter" })).not.toBeInTheDocument();
+    expect(await screen.findByText("Body")).toBeInTheDocument();
+  });
+
   it("applies the latest controlled value while the editor is starting", async () => {
     const adapterRef = { current: null } as RefObject<EditorAdapter | null>;
     const { rerender } = render(

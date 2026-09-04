@@ -8,4 +8,8 @@ describe("Tauri main-window capabilities", () => {
   it("allows a confirmed discard to destroy the window", () => {
     expect(capability.permissions).toContain("core:window:allow-destroy");
   });
+
+  it("allows the native WebView print command used by Print / PDF", () => {
+    expect(capability.permissions).toContain("core:webview:allow-print");
+  });
 });

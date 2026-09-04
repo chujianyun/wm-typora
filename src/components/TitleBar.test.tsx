@@ -46,6 +46,23 @@ describe("TitleBar", () => {
     expect(screen.queryByRole("menu", { name: "更多操作" })).not.toBeInTheDocument();
   });
 
+  it.each([
+    ["打开文件夹", "onOpenWorkspace"],
+    ["保存", "onSave"],
+    ["另存为", "onSaveAs"],
+    ["导出 HTML", "onExportHtml"],
+    ["打印或导出 PDF", "onPrint"],
+  ] as const)("runs the %s more-menu command", async (menuItem, handlerName) => {
+    const user = userEvent.setup();
+    const handlers = renderTitleBar();
+
+    await user.click(screen.getByRole("button", { name: "更多操作" }));
+    await user.click(screen.getByRole("menuitem", { name: menuItem }));
+
+    expect(handlers[handlerName]).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("menu", { name: "更多操作" })).not.toBeInTheDocument();
+  });
+
   it("leaves the frequent editing commands one click away", () => {
     renderTitleBar();
 

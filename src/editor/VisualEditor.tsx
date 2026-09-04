@@ -365,11 +365,7 @@ export function VisualEditor({
       data-focus-mode={focusMode || undefined}
       data-typewriter-mode={typewriterMode || undefined}
     >
-      {frontMatter === null ? (
-        <button className="frontmatter-add" onClick={() => updateFrontMatter("")}>
-          + Front Matter
-        </button>
-      ) : (
+      {frontMatter !== null ? (
         <label className="frontmatter-panel">
           <span>YAML Front Matter</span>
           <textarea
@@ -380,7 +376,7 @@ export function VisualEditor({
             onChange={(event) => updateFrontMatter(event.target.value)}
           />
         </label>
-      )}
+      ) : null}
       {editorError ? <div role="alert">可视化编辑器启动失败：{editorError}</div> : null}
       <div className="visual-editor-surface" ref={rootRef} />
     </div>

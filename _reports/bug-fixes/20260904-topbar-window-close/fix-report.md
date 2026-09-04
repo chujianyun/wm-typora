@@ -3,7 +3,7 @@
 - 日期：2026-09-04
 - 修复范围：顶部工具栏、更多操作菜单、macOS 主窗口关闭权限
 - 处理状态：已修复
-- 发布状态：已随修复提交到本地 `main`；上游 `origin/main` 已失效，因此未推送、未部署。
+- 发布状态：已随修复提交到本地 `main`；上游 `origin/main` 已失效，因此未推送；release 已安装到本机 `/Applications/WTypora.app` 并启动。
 
 ## 问题与影响
 
@@ -62,11 +62,24 @@
 | Rust 静态检查 | `cargo fmt --manifest-path src-tauri/Cargo.toml -- --check`、`cargo clippy --manifest-path src-tauri/Cargo.toml --locked --all-targets -- -D warnings` | 全部通过 |
 | 依赖检查 | `npm audit --omit=dev --audit-level=high --offline` | 通过：0 vulnerabilities |
 | 桌面打包 | `npm run tauri -- build --debug` | 通过：生成 arm64 `.app` 与 `.dmg` |
+| Release 打包 | `npm run tauri build` | 通过：生成并临时签名 release `.app` 与 arm64 `.dmg` |
 | 签名校验 | `codesign --verify --deep --strict src-tauri/target/debug/bundle/macos/WTypora.app` | 通过 |
 | 界面交互验证 | 1280×720 前后截图；打开“更多操作”并检查 5 个菜单项 | 通过 |
+| 安装版退出验证 | 启动 `/Applications/WTypora.app`，按精确 PID 发送 `Cmd+Q` | 通过：进程正常退出，没有 ACL 错误；随后重新启动成功 |
+
+## 本机安装与运行验证
+
+- 源码提交：`0f60917430c8f01540b4249f2ed617bc0c12fa8c`。
+- 安装版本：`0.1.0`。
+- Release 可执行文件 SHA-256：`e14cd3c741bba28d7809a0cb9bd1f52d1b3e97a4705613f70ed14169be39e0ea`。
+- DMG SHA-256：`26fff5c3bb4321a0955cb3848527940eb12f8ed97f828a4a73e70b3a34411751`。
+- 安装前旧版可执行文件 SHA-256：`76b9a9e8e6ee5b92a8d907dea0788dba048787d7182a3cd8a26cbee8ff40a681`。
+- 旧版备份：`/Users/wuming/.Trash/WTypora-before-acl-fix-20260904-1225.app`，可从废纸篓恢复。
+- 安装校验：安装版签名有效，安装后可执行文件哈希与 release 产物一致。
+- 运行验证：首次启动 PID `62747`，实际 `Cmd+Q` 后正常退出；再次启动 PID `62812`，启动 3 秒后仍正常运行。
 
 ## 已知限制
 
-- 当前自动化环境无法驱动 macOS 原生交通灯按钮，因此没有录制一次真实鼠标点击关闭；修复由两项 capability 契约测试、实际调用链审查、Tauri 桌面打包和签名校验共同验证。
+- 当前自动化环境没有录制 macOS 原生交通灯按钮的 dirty 文档确认流程；该 `destroy` 路径由 capability 契约测试覆盖。安装版应用菜单 `Cmd+Q` 的 `close` 路径已实际运行验证。
 - Vite 仍提示主 `index` chunk 约 2148.75 kB，属于现有首屏性能技术债，不影响本次功能正确性。
-- 当前 `origin/main` 跟踪分支已失效；本次只创建本地提交，不推送或安装覆盖 `/Applications/WTypora.app`。
+- 当前 `origin/main` 跟踪分支已失效且远端没有可用 heads，因此本次未推送；本机安装已经完成。

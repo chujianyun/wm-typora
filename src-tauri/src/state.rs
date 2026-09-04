@@ -10,6 +10,45 @@ pub struct AccessState {
     directories: Mutex<Vec<PathBuf>>,
 }
 
+#[derive(Default)]
+pub struct PendingOpenFiles {
+    paths: Mutex<Vec<PathBuf>>,
+}
+
+impl PendingOpenFiles {
+    pub fn enqueue_path(&self, path: impl AsRef<Path>) -> bool {
+        let path = path.as_ref();
+        let supported = path
+            .extension()
+            .and_then(|extension| extension.to_str())
+            .is_some_and(|extension| {
+                ["md", "markdown", "txt"]
+                    .iter()
+                    .any(|supported| extension.eq_ignore_ascii_case(supported))
+            });
+        if !supported {
+            return false;
+        }
+        self.paths
+            .lock()
+            .expect("pending open files poisoned")
+            .push(path.to_path_buf());
+        true
+    }
+
+    pub fn take_paths(&self, access: &AccessState) -> NativeResult<Vec<String>> {
+        let paths = std::mem::take(&mut *self.paths.lock().expect("pending open files poisoned"));
+        paths
+            .into_iter()
+            .map(|path| {
+                access
+                    .grant_file(path)
+                    .map(|path| path.to_string_lossy().into_owned())
+            })
+            .collect()
+    }
+}
+
 impl AccessState {
     fn normalize_file(path: &Path) -> NativeResult<PathBuf> {
         let normalized = if path.exists() {

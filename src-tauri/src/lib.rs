@@ -3,10 +3,10 @@ pub mod error;
 pub mod state;
 
 use commands::watcher::WatchState;
-use state::AccessState;
+use state::{AccessState, PendingOpenFiles};
 use tauri::{
     menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder},
-    App, Emitter, Runtime,
+    App, Emitter, Manager, Runtime,
 };
 
 fn command_item<R: Runtime>(
@@ -102,8 +102,9 @@ fn install_menu<R: Runtime>(app: &mut App<R>) -> tauri::Result<()> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let app = tauri::Builder::default()
         .manage(AccessState::default())
+        .manage(PendingOpenFiles::default())
         .manage(WatchState::default())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
@@ -113,6 +114,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            commands::take_pending_open_files,
             commands::open_text_file,
             commands::choose_workspace,
             commands::save_text_file_as,
@@ -127,6 +129,26 @@ pub fn run() {
             commands::watcher::start_file_watch,
             commands::watcher::stop_file_watch,
         ])
-        .run(tauri::generate_context!())
-        .expect("failed to run WTypora");
+        .build(tauri::generate_context!())
+        .expect("failed to build WTypora");
+
+    app.run(|handle, event| {
+        #[cfg(target_os = "macos")]
+        if let tauri::RunEvent::Opened { urls } = event {
+            let pending = handle.state::<PendingOpenFiles>();
+            let enqueued = urls
+                .into_iter()
+                .filter_map(|url| url.to_file_path().ok())
+                .fold(false, |enqueued, path| {
+                    pending.enqueue_path(path) || enqueued
+                });
+            if enqueued {
+                let _ = handle.emit("open-file-requested", ());
+                if let Some(window) = handle.get_webview_window("main") {
+                    let _ = window.show();
+                    let _ = window.set_focus();
+                }
+            }
+        }
+    });
 }

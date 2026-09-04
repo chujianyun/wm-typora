@@ -151,6 +151,9 @@ export function createMemoryNativeBridge(options: MemoryBridgeOptions = {}): Nat
     async exportHtml(_html, suggestedName = "document.html") {
       return `/Downloads/${suggestedName}`;
     },
+    async watchOpenFiles() {
+      return async () => undefined;
+    },
     async watchFile() {
       return async () => undefined;
     },

@@ -35,6 +35,28 @@ describe("App", () => {
     );
   });
 
+  it("opens a document requested by the desktop shell", async () => {
+    const path = "/notes/opened-from-finder.md";
+    const memory = createMemoryNativeBridge({
+      files: { [path]: "# Opened from Finder" },
+    });
+    const bridge = {
+      ...memory,
+      async watchOpenFiles(onOpen: (path: string) => void) {
+        onOpen(path);
+        return async () => undefined;
+      },
+    };
+
+    render(<App bridge={bridge} />);
+
+    expect(await screen.findByText("opened-from-finder.md")).toBeVisible();
+    expect(useDocumentStore.getState()).toMatchObject({
+      path,
+      markdown: "# Opened from Finder",
+    });
+  });
+
   it("shows a save decision before replacing dirty content", async () => {
     const user = userEvent.setup();
     render(<App />);

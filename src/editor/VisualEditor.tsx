@@ -79,6 +79,7 @@ export function VisualEditor({
   const [editorError, setEditorError] = useState<string | null>(null);
   const onChangeRef = useRef(onChange);
   const applyingRef = useRef(false);
+  const userInteractionRef = useRef(false);
 
   useEffect(() => {
     latestValueRef.current = value;
@@ -122,8 +123,14 @@ export function VisualEditor({
 
   useEffect(() => {
     if (!rootRef.current) return;
+    const root = rootRef.current;
+    const markUserInteraction = () => {
+      userInteractionRef.current = true;
+    };
+    const interactionEvents = ["beforeinput", "keydown", "paste", "cut", "drop", "pointerdown"];
+    interactionEvents.forEach((event) => root.addEventListener(event, markUserInteraction));
     const crepe = new Crepe({
-      root: rootRef.current,
+      root,
       defaultValue: initialValueRef.current,
       featureConfigs: {
         [Crepe.Feature.Placeholder]: {
@@ -165,7 +172,7 @@ export function VisualEditor({
     });
     crepe.on((listener) => {
       listener.markdownUpdated((_context, markdown, previous) => {
-        if (!applyingRef.current && markdown !== previous) {
+        if (!applyingRef.current && userInteractionRef.current && markdown !== previous) {
           bodyRef.current = markdown;
           markdownRef.current = frontMatterPrefixRef.current + markdown;
           onChangeRef.current(markdownRef.current);
@@ -175,6 +182,7 @@ export function VisualEditor({
 
     let adapter: EditorAdapter | null = null;
     let disposed = false;
+    applyingRef.current = true;
     void crepe.create().then(() => {
       if (disposed) {
         void crepe.destroy();
@@ -190,10 +198,14 @@ export function VisualEditor({
       if (latest.body !== initialValueRef.current) {
         applyingRef.current = true;
         crepe.editor.action(replaceAll(latest.body));
-        queueMicrotask(() => {
-          applyingRef.current = false;
-        });
       }
+      // Crepe can publish a parser-normalized Markdown update from a later
+      // macrotask while it finishes mounting its feature views. Keep the
+      // document protected through that initialization turn so merely opening
+      // a file never marks it dirty or rewrites its source formatting.
+      window.setTimeout(() => {
+        if (!disposed) applyingRef.current = false;
+      }, 0);
       adapter = {
         getMarkdown: () => markdownRef.current,
         setMarkdown: (next) => {
@@ -315,11 +327,13 @@ export function VisualEditor({
           for (const range of ranges.reverse()) {
             transaction = transaction.insertText(replacement, range.from, range.to);
           }
+          userInteractionRef.current = true;
           view.dispatch(transaction);
         },
       };
       if (adapterRef) adapterRef.current = adapter;
     }).catch((error: unknown) => {
+      applyingRef.current = false;
       if (!disposed) {
         setEditorError(error instanceof Error ? error.message : String(error));
       }
@@ -327,6 +341,7 @@ export function VisualEditor({
 
     return () => {
       disposed = true;
+      interactionEvents.forEach((event) => root.removeEventListener(event, markUserInteraction));
       if (adapterRef && adapterRef.current === adapter) adapterRef.current = null;
       crepeRef.current = null;
       void crepe.destroy();

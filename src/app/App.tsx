@@ -52,6 +52,7 @@ export function App({ bridge = nativeBridge }: AppProps) {
   const {
     newDocument,
     openFile,
+    openPath,
     openWorkspace,
     reportError,
     requestAction,
@@ -175,6 +176,21 @@ export function App({ bridge = nativeBridge }: AppProps) {
     void initializePreferences().catch(reportError);
     return () => autosave.cancel();
   }, [autosave, reportError]);
+
+  useEffect(() => {
+    let disposed = false;
+    let stopWatching: (() => Promise<void>) | null = null;
+    void bridge.watchOpenFiles(openPath, reportError).then((stop) => {
+      if (disposed) void stop().catch(reportError);
+      else stopWatching = stop;
+    }).catch((error) => {
+      if (!disposed) reportError(error);
+    });
+    return () => {
+      disposed = true;
+      if (stopWatching) void stopWatching().catch(reportError);
+    };
+  }, [bridge, openPath, reportError]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = activeTheme;

@@ -5,7 +5,7 @@ pub mod workspace;
 
 use crate::{
     error::{NativeError, NativeResult},
-    state::AccessState,
+    state::{AccessState, PendingOpenFiles},
 };
 use std::path::PathBuf;
 use tauri::{State, Window};
@@ -14,6 +14,14 @@ use tauri_plugin_dialog::{DialogExt, FilePath};
 fn local_path(path: FilePath) -> NativeResult<PathBuf> {
     path.into_path()
         .map_err(|error| NativeError::new("invalid_path", error.to_string()))
+}
+
+#[tauri::command]
+pub fn take_pending_open_files(
+    pending: State<'_, PendingOpenFiles>,
+    access: State<'_, AccessState>,
+) -> NativeResult<Vec<String>> {
+    pending.take_paths(&access)
 }
 
 #[tauri::command]

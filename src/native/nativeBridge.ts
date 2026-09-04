@@ -61,6 +61,35 @@ class TauriNativeBridge implements NativeBridge {
     return invoke<string | null>("save_export_file_as", { html, suggestedName });
   }
 
+  async watchOpenFiles(
+    onOpen: (path: string) => void,
+    onError: (error: unknown) => void,
+  ) {
+    let disposed = false;
+    let pendingDrain: Promise<void> = Promise.resolve();
+    const drain = () => {
+      pendingDrain = pendingDrain
+        .then(async () => {
+          const paths = await invoke<string[]>("take_pending_open_files");
+          if (!disposed) {
+            const path = paths.at(-1);
+            if (path) onOpen(path);
+          }
+        })
+        .catch(onError);
+      return pendingDrain;
+    };
+    const unlisten = await listen("open-file-requested", () => {
+      void drain();
+    });
+    await drain();
+    return async () => {
+      disposed = true;
+      unlisten();
+      await pendingDrain;
+    };
+  }
+
   async watchFile(path: string, onChange: (path: string) => void) {
     const unlisten = await listen<{ path: string }>("file-changed", (event) => {
       if (event.payload.path === path) onChange(path);

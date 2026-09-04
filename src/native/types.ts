@@ -50,5 +50,9 @@ export interface NativeBridge {
   storeImage(fileName: string, bytes: Uint8Array, documentPath: string): Promise<CopiedImage>;
   resolveImagePath(documentPath: string, imagePath: string): Promise<string>;
   exportHtml(html: string, suggestedName?: string): Promise<string | null>;
+  watchOpenFiles(
+    onOpen: (path: string) => void,
+    onError: (error: unknown) => void,
+  ): Promise<() => Promise<void>>;
   watchFile(path: string, onChange: (path: string) => void): Promise<() => Promise<void>>;
 }

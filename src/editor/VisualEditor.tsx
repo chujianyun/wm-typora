@@ -124,11 +124,17 @@ export function VisualEditor({
   useEffect(() => {
     if (!rootRef.current) return;
     const root = rootRef.current;
+    let interactionTimer: number | null = null;
     const markUserInteraction = () => {
       userInteractionRef.current = true;
+      if (interactionTimer !== null) window.clearTimeout(interactionTimer);
+      interactionTimer = window.setTimeout(() => {
+        userInteractionRef.current = false;
+        interactionTimer = null;
+      }, 100);
     };
-    const interactionEvents = ["beforeinput", "keydown", "paste", "cut", "drop", "pointerdown"];
-    interactionEvents.forEach((event) => root.addEventListener(event, markUserInteraction));
+    const interactionEvents = ["beforeinput", "keydown", "paste", "cut", "drop", "pointerdown", "click"];
+    interactionEvents.forEach((event) => root.addEventListener(event, markUserInteraction, true));
     const crepe = new Crepe({
       root,
       defaultValue: initialValueRef.current,
@@ -327,8 +333,11 @@ export function VisualEditor({
           for (const range of ranges.reverse()) {
             transaction = transaction.insertText(replacement, range.from, range.to);
           }
-          userInteractionRef.current = true;
           view.dispatch(transaction);
+          const nextBody = crepe.editor.ctx.get(serializerCtx)(view.state.doc);
+          bodyRef.current = nextBody;
+          markdownRef.current = frontMatterPrefixRef.current + nextBody;
+          onChangeRef.current(markdownRef.current);
         },
       };
       if (adapterRef) adapterRef.current = adapter;
@@ -341,7 +350,9 @@ export function VisualEditor({
 
     return () => {
       disposed = true;
-      interactionEvents.forEach((event) => root.removeEventListener(event, markUserInteraction));
+      if (interactionTimer !== null) window.clearTimeout(interactionTimer);
+      userInteractionRef.current = false;
+      interactionEvents.forEach((event) => root.removeEventListener(event, markUserInteraction, true));
       if (adapterRef && adapterRef.current === adapter) adapterRef.current = null;
       crepeRef.current = null;
       void crepe.destroy();

@@ -58,7 +58,8 @@ describe("App", () => {
     });
     render(<App bridge={bridge} />);
 
-    await user.click(screen.getByRole("button", { name: "打开文件夹" }));
+    await user.click(screen.getByRole("button", { name: "更多操作" }));
+    await user.click(screen.getByRole("menuitem", { name: "打开文件夹" }));
 
     expect(await screen.findByRole("button", { name: "guide.md" })).toBeVisible();
     expect(screen.queryByText("image.png")).not.toBeInTheDocument();
@@ -71,7 +72,8 @@ describe("App", () => {
     useDocumentStore.getState().updateMarkdown("# Export me\n\n<script>bad()</script>");
     render(<App bridge={{ ...memory, exportHtml }} />);
 
-    await user.click(screen.getByRole("button", { name: "导出 HTML" }));
+    await user.click(screen.getByRole("button", { name: "更多操作" }));
+    await user.click(screen.getByRole("menuitem", { name: "导出 HTML" }));
 
     await waitFor(() => expect(exportHtml).toHaveBeenCalledTimes(1));
     const [html, name] = exportHtml.mock.calls[0];
@@ -92,7 +94,8 @@ describe("App", () => {
     });
     render(<App bridge={{ ...bridge, exportHtml }} />);
 
-    await user.click(screen.getByRole("button", { name: "导出 HTML" }));
+    await user.click(screen.getByRole("button", { name: "更多操作" }));
+    await user.click(screen.getByRole("menuitem", { name: "导出 HTML" }));
     act(() => {
       useDocumentStore.getState().openDocument({
         path: "/notes/b.md",

@@ -3,7 +3,7 @@
 - 日期：2026-09-04
 - 修复范围：macOS 文件关联、桌面打开事件、前端文档接收与编辑器初始化
 - 处理状态：已修复
-- 发布状态：未提交；本机 `/Applications/WTypora.app` 已安装并验证
+- 发布状态：修复提交 `076ff6431d3e9207cc657730161eb842f2c7cd46` 已推送至 `origin/main`；本机 `/Applications/WTypora.app` 已安装并验证
 
 ## 问题与影响
 

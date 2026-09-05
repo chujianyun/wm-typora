@@ -1,0 +1,12 @@
+[
+ {"file":"empty.md","encoding":"utf-8","eol":"lf","readOnly":false,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+ {"file":"lf.md","encoding":"utf-8","eol":"lf","readOnly":false,"sha256":"6250cc229000ca8ac4b737ea9e48fd1751f5995598c72551e3a7b630a32e0855"},
+ {"file":"crlf.md","encoding":"utf-8","eol":"crlf","readOnly":false,"sha256":"ff6c44ba6ecee561dc923a851bb7aec7bd4cc8c4bb9417fee7e9e6c4fd3e96b7"},
+ {"file":"bom.md","encoding":"utf-8-bom","eol":"lf","readOnly":false,"sha256":"fa5e3b8cf8ffdc52e63b749ed801e824f431f10eae864097d441483467a4325b"},
+ {"file":"no-final-newline.md","encoding":"utf-8","eol":"lf","readOnly":false,"sha256":"bd65ce15b34036703263f85be46392aca3c93ba82de2c084b0804e3e8361f9e5"},
+ {"file":"unknown.md","encoding":"utf-8","eol":"lf","readOnly":false,"sha256":"8cd8828f59bf3203a113ea6fcd1f6ba5bfa9bcb085e5380eeb44e599163af9e1"},
+ {"file":"mixed.md","encoding":"utf-8","eol":"mixed","readOnly":true,"sha256":"611912c05d6113dd9932610cf2d5876c6f05324e05f326a40620dd4f3fd4ac0d"},
+ {"file":"cr.md","encoding":"utf-8","eol":"cr","readOnly":true,"sha256":"bccbc54e5d50f2a59ed94b37795c3614d186c251e67ee2c058c5e2df79d3ab02"},
+ {"file":"invalid.bin","reject":true,"sha256":"ba778c0261008c8f71ae4061ad0162ffcbe63b52c91f89f236738131d1217ec7"},
+ {"file":"nul.bin","reject":true,"sha256":"59b271ae1bbcb1d31d41929817f4b16fb439eb4f31520b5ad1d5ce98920a7138"}
+]

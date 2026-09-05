@@ -1,0 +1,27 @@
+name: Foundation
+on: [push, pull_request]
+jobs:
+  checks:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26.8.1
+          cache: npm
+      - uses: dtolnay/rust-toolchain@1.98.1
+        with:
+          components: rustfmt, clippy
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev librsvg2-dev libayatana-appindicator3-dev
+      - run: npm ci
+      - run: node scripts/check-foundation.mjs
+      - if: runner.os == 'macOS'
+        run: npx playwright install chromium webkit
+      - if: runner.os == 'macOS'
+        run: npm run e2e
+      - run: npm run tauri -w @wtypora/desktop -- build --debug --no-bundle

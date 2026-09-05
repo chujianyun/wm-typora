@@ -1,0 +1,9 @@
+node_modules
+target
+apps/desktop/dist
+apps/desktop/src-tauri/gen
+fixtures
+package-lock.json
+docs/superpowers
+test-results
+playwright-report

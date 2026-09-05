@@ -1,61 +1,23 @@
 {
-  "name": "wtypora",
+  "name": "wtypora-foundation",
   "private": true,
-  "version": "0.1.0",
   "type": "module",
-  "engines": {
-    "node": ">=26.0.0",
-    "npm": ">=11.0.0"
-  },
+  "workspaces": [
+    "apps/desktop"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "typecheck": "tsc -b --pretty false",
-    "lint": "eslint . --max-warnings 0",
-    "test": "vitest",
-    "tauri": "tauri"
-  },
-  "dependencies": {
-    "@codemirror/commands": "6.11.0",
-    "@codemirror/lang-markdown": "6.5.2",
-    "@codemirror/state": "6.5.2",
-    "@codemirror/view": "6.38.2",
-    "@milkdown/core": "7.22.1",
-    "@milkdown/crepe": "7.22.1",
-    "@milkdown/prose": "7.22.1",
-    "@milkdown/utils": "7.22.1",
-    "@tauri-apps/api": "2.11.1",
-    "@tauri-apps/plugin-opener": "2.5.5",
-    "@tauri-apps/plugin-store": "2.4.4",
-    "dompurify": "3.4.14",
-    "katex": "0.16.22",
-    "marked": "18.0.11",
-    "marked-footnote": "1.4.0",
-    "mermaid": "11.17.2",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "zustand": "5.0.15"
+    "check": "node scripts/check-foundation.mjs",
+    "format": "prettier --write apps/desktop/src apps/desktop/e2e apps/desktop/*.ts apps/desktop/*.mjs scripts package.json",
+    "format:check": "prettier --check apps/desktop/src apps/desktop/e2e apps/desktop/*.ts apps/desktop/*.mjs scripts package.json",
+    "dev": "npm run dev -w @wtypora/desktop",
+    "test": "npm test -w @wtypora/desktop",
+    "typecheck": "npm run typecheck -w @wtypora/desktop",
+    "lint": "npm run lint -w @wtypora/desktop",
+    "build": "npm run build -w @wtypora/desktop",
+    "e2e": "npm run e2e -w @wtypora/desktop --",
+    "desktop": "npm run tauri -w @wtypora/desktop -- dev"
   },
   "devDependencies": {
-    "@eslint/js": "latest",
-    "@tauri-apps/cli": "2.11.4",
-    "@testing-library/jest-dom": "latest",
-    "@testing-library/react": "latest",
-    "@testing-library/user-event": "latest",
-    "@types/dompurify": "latest",
-    "@types/katex": "latest",
-    "@types/node": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
-    "@vitejs/plugin-react": "latest",
-    "eslint": "latest",
-    "eslint-plugin-react-hooks": "latest",
-    "eslint-plugin-react-refresh": "latest",
-    "globals": "latest",
-    "jsdom": "latest",
-    "typescript": "6.0.3",
-    "typescript-eslint": "latest",
-    "vite": "8.2.2",
-    "vitest": "5.0.0"
+    "prettier": "3.9.6"
   }
 }

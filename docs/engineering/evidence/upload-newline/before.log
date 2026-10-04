@@ -1,0 +1,56 @@
+
+> e2e
+> npm run e2e -w @wtypora/desktop -- upload-newline.spec.ts --project chromium
+
+
+> @wtypora/desktop@0.1.0 e2e
+> playwright test upload-newline.spec.ts --project chromium
+
+[WebServer] (node:32270) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:32278) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium] › e2e/upload-newline.spec.ts:5:1 › successful image paste places the caret on the next line for continued writing (5.5s)
+
+
+  1) [chromium] › e2e/upload-newline.spec.ts:5:1 › successful image paste places the caret on the next line for continued writing 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('textbox', { name: '文档编辑器' }).locator('img')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('textbox', { name: '文档编辑器' }).locator('img') with timeout 5000ms
+      - waiting for getByRole('textbox', { name: '文档编辑器' }).locator('img')
+
+
+      47 |     });
+      48 |   }
+    > 49 |   await expect(editor.locator("img")).toBeVisible();
+         |                                       ^
+      50 |   await page.keyboard.type("继续写作");
+      51 |   await expect(editor).toContainText("继续写作");
+      52 |   await expect(editor.locator("img")).toBeVisible();
+        at /Users/wuming/Documents/Coding/my/wtypora/apps/desktop/e2e/upload-newline.spec.ts:49:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/upload-newline-successful--6c7b0--line-for-continued-writing-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/upload-newline-successful--6c7b0--line-for-continued-writing-chromium/error-context.md
+
+  1 failed
+    [chromium] › e2e/upload-newline.spec.ts:5:1 › successful image paste places the caret on the next line for continued writing 
+npm error Lifecycle script `e2e` failed with error:
+npm error code 1
+npm error path /Users/wuming/Documents/Coding/my/wtypora/apps/desktop
+npm error workspace @wtypora/desktop@0.1.0
+npm error location /Users/wuming/Documents/Coding/my/wtypora/apps/desktop
+npm error command failed
+npm error command sh -c playwright test upload-newline.spec.ts --project chromium

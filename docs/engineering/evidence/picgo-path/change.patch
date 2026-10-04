@@ -1,0 +1,142 @@
+--- /tmp/wtypora-uploads-before-picgo-path.rs	2026-09-06 22:27:27
++++ apps/desktop/src-tauri/src/uploads.rs	2026-09-06 22:28:22
+@@ -63,6 +63,32 @@
+         .find_map(|line| image_url(line.trim()).ok())
+         .ok_or("PicGo-Core 未返回图片链接，请检查图床配置和上传日志。".into())
+ }
++fn core_command(executable: &str) -> Result<Command, String> {
++    let mut paths = Vec::new();
++    // npm launchers use /usr/bin/env node. An absolute PicGo path alone does
++    // not let Finder-launched apps discover its sibling Node executable.
++    if let Some(parent) = std::path::Path::new(executable)
++        .parent()
++        .filter(|path| path.is_absolute())
++    {
++        paths.push(parent.to_path_buf());
++    }
++    if let Some(inherited) = std::env::var_os("PATH") {
++        paths.extend(std::env::split_paths(&inherited));
++    }
++    #[cfg(target_os = "macos")]
++    for directory in ["/opt/homebrew/bin", "/usr/local/bin"] {
++        let path = std::path::PathBuf::from(directory);
++        if !paths.contains(&path) {
++            paths.push(path);
++        }
++    }
++    let path = std::env::join_paths(paths).map_err(|_| "无法构建 PicGo-Core 程序搜索路径")?;
++    let mut command = Command::new(executable);
++    // Scope PATH to this child; do not mutate the app environment or run a shell.
++    command.env("PATH", path);
++    Ok(command)
++}
+ fn upload(bytes: Vec<u8>, mime: String, settings: UploadSettings) -> Result<String, String> {
+     if bytes.is_empty() || bytes.len() > 10 * 1024 * 1024 {
+         return Err("图片为空或超过 10 MB".into());
+@@ -120,7 +146,7 @@
+             // Use an argument vector, never a shell command. Capture output in a file to
+             // avoid pipe-buffer deadlocks; kill the child before removing upload files.
+             let output = tempfile::tempfile().map_err(|_| "无法创建上传日志")?;
+-            let mut child = Command::new(executable)
++            let mut child = core_command(executable)?
+                 .arg("upload")
+                 .arg(file.path())
+                 .stdin(Stdio::null())
+@@ -133,7 +159,9 @@
+                 match child.try_wait() {
+                     Ok(Some(status)) => {
+                         if !status.success() {
+-                            return Err("PicGo-Core 上传失败，请检查其图床配置。".into());
++                            return Err(format!(
++                                "PicGo-Core 进程退出（{status}）。请检查 Node.js 运行环境和 PicGo 上传日志。"
++                            ));
+                         }
+                         break;
+                     }
+@@ -266,3 +294,86 @@
+         }
+     }
+ }
++
++#[cfg(all(test, unix))]
++mod core_process_tests {
++    use super::*;
++    use std::{fs, os::unix::fs::PermissionsExt};
++
++    #[test]
++    fn core_upload_finds_sibling_runtime_with_finder_path() {
++        let dir = tempfile::Builder::new()
++            .prefix("wtypora picgo ; ")
++            .tempdir()
++            .unwrap();
++        let executable = dir.path().join("picgo");
++        let runtime = dir.path().join("wtypora-test-node");
++        fs::write(&executable, "#!/usr/bin/env wtypora-test-node\n").unwrap();
++        fs::write(
++            &runtime,
++            "#!/bin/sh\n[ \"$2\" = upload ] || exit 2\n[ -f \"$3\" ] || exit 3\ncat \"$3\" > \"$WTYPORA_TEST_IMAGE\"\nprintf '%s' \"$3\" > \"$WTYPORA_TEST_TEMP_PATH\"\nprintf '[PicGo SUCCESS]\\nhttps://example.com/image.png\\n'\n",
++        )
++        .unwrap();
++        for path in [&executable, &runtime] {
++            fs::set_permissions(path, fs::Permissions::from_mode(0o700)).unwrap();
++        }
++        let image = dir.path().join("received-image");
++        let temp_path = dir.path().join("temp-path");
++        // Change only a subprocess environment: parallel tests must not mutate PATH.
++        let result = Command::new(std::env::current_exe().unwrap())
++            .args([
++                "--exact",
++                "uploads::core_process_tests::core_upload_child",
++                "--ignored",
++                "--nocapture",
++            ])
++            .env("PATH", "/usr/bin:/bin:/usr/sbin:/sbin")
++            .env("WTYPORA_TEST_PICGO", &executable)
++            .env("WTYPORA_TEST_IMAGE", &image)
++            .env("WTYPORA_TEST_TEMP_PATH", &temp_path)
++            .output()
++            .unwrap();
++        assert!(
++            result.status.success(),
++            "{}\n{}",
++            String::from_utf8_lossy(&result.stdout),
++            String::from_utf8_lossy(&result.stderr)
++        );
++        assert_eq!(fs::read(image).unwrap(), b"test image bytes");
++        assert!(!std::path::Path::new(&fs::read_to_string(temp_path).unwrap()).exists());
++    }
++
++    #[test]
++    #[ignore = "subprocess entry point with an isolated PATH"]
++    fn core_upload_child() {
++        let result = upload(
++            b"test image bytes".to_vec(),
++            "image/png".into(),
++            UploadSettings {
++                provider: "picgo-core".into(),
++                endpoint: String::new(),
++                executable: std::env::var("WTYPORA_TEST_PICGO").unwrap(),
++            },
++        );
++        assert_eq!(result.unwrap(), "https://example.com/image.png");
++    }
++
++    #[test]
++    #[ignore = "manual smoke test: requires a locally installed PicGo-Core"]
++    fn installed_picgo_starts() {
++        let executable = std::env::var("WTYPORA_TEST_PICGO").unwrap();
++        let result = core_command(&executable)
++            .unwrap()
++            .arg("--version")
++            .output()
++            .unwrap();
++        assert!(
++            result.status.success(),
++            "{}",
++            String::from_utf8_lossy(&result.stderr)
++        );
++        let version = String::from_utf8_lossy(&result.stdout);
++        assert!(!version.trim().is_empty());
++        println!("PicGo-Core version: {}", version.trim());
++    }
++}

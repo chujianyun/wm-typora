@@ -1,0 +1,70 @@
+
+> e2e
+> npm run e2e -w @wtypora/desktop --
+
+
+> @wtypora/desktop@0.1.0 e2e
+> playwright test
+
+[WebServer] (node:74530) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 34 tests using 5 workers
+
+(node:74610) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74609) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74611) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74608) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74612) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  -   5 [chromium] › e2e/performance.spec.ts:6:1 › record browser development-mode baseline (opt-in)
+  ✓   2 [chromium] › e2e/editor.spec.ts:2:1 › writing column stays centered with desktop and narrow-window padding (570ms)
+  ✓   4 [chromium] › e2e/improvements.spec.ts:3:1 › Enter keeps separate visual lines after the paragraph is rendered (824ms)
+  ✓   6 [chromium] › e2e/preview.spec.ts:5:1 › writing renders in place, clicking edits a block and leaving renders it again (700ms)
+  ✓   1 [chromium] › e2e/images.spec.ts:9:1 › remote images load under the production image policy and fit the writing surface (914ms)
+  ✓   3 [chromium] › e2e/code-blocks.spec.ts:5:1 › typed fences support highlighted editing, indentation and rendering (934ms)
+  ✓   7 [chromium] › e2e/editor.spec.ts:24:1 › edit, save, edit again, and cancel close (569ms)
+  ✓  10 [chromium] › e2e/images.spec.ts:75:1 › failed remote images show a useful message and retain their Markdown (452ms)
+  ✓   9 [chromium] › e2e/preview.spec.ts:33:1 › mode changes retain caret and history and edits from source render immediately (540ms)
+  ✓  11 [chromium] › e2e/code-blocks.spec.ts:37:1 › menu and shortcut insert undoable code blocks around selected text (494ms)
+  ✓   8 [chromium] › e2e/improvements.spec.ts:38:1 › themes and uploader preferences persist without changing Markdown (712ms)
+  ✓  12 [chromium] › e2e/editor.spec.ts:45:1 › source syntax, undo and find remain usable (417ms)
+  ✓  14 [chromium] › e2e/preview.spec.ts:60:1 › rendered GFM fits narrow and dark windows (402ms)
+  ✓  15 [chromium] › e2e/code-blocks.spec.ts:57:1 › long code stays within a narrow window and uses readable night colors (430ms)
+  ✓  16 [chromium] › e2e/improvements.spec.ts:82:1 › image clipboard events reach the uploader and report failure without inserting broken Markdown (458ms)
+  ✓  13 [chromium] › e2e/images.spec.ts:92:1 › image insertion format persists and offers empty or filename descriptions (626ms)
+(node:74807) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74808) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  17 [chromium] › e2e/recent.spec.ts:3:1 › recent files show ten choices with full paths and support keyboard dismissal (579ms)
+(node:74810) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74811) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74828) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  19 [webkit] › e2e/editor.spec.ts:2:1 › writing column stays centered with desktop and narrow-window padding (834ms)
+  -  22 [webkit] › e2e/performance.spec.ts:6:1 › record browser development-mode baseline (opt-in)
+  ✓  21 [webkit] › e2e/improvements.spec.ts:3:1 › Enter keeps separate visual lines after the paragraph is rendered (847ms)
+  ✓  20 [webkit] › e2e/images.spec.ts:9:1 › remote images load under the production image policy and fit the writing surface (896ms)
+  ✓  18 [webkit] › e2e/code-blocks.spec.ts:5:1 › typed fences support highlighted editing, indentation and rendering (1.3s)
+  ✓  23 [webkit] › e2e/editor.spec.ts:24:1 › edit, save, edit again, and cancel close (762ms)
+  ✓  26 [webkit] › e2e/images.spec.ts:75:1 › failed remote images show a useful message and retain their Markdown (566ms)
+  ✓  24 [webkit] › e2e/preview.spec.ts:5:1 › writing renders in place, clicking edits a block and leaving renders it again (668ms)
+  ✓  27 [webkit] › e2e/code-blocks.spec.ts:37:1 › menu and shortcut insert undoable code blocks around selected text (571ms)
+  ✓  25 [webkit] › e2e/improvements.spec.ts:38:1 › themes and uploader preferences persist without changing Markdown (972ms)
+  ✓  28 [webkit] › e2e/editor.spec.ts:45:1 › source syntax, undo and find remain usable (636ms)
+  ✓  31 [webkit] › e2e/code-blocks.spec.ts:57:1 › long code stays within a narrow window and uses readable night colors (430ms)
+  ✓  30 [webkit] › e2e/preview.spec.ts:33:1 › mode changes retain caret and history and edits from source render immediately (718ms)
+  ✓  29 [webkit] › e2e/images.spec.ts:92:1 › image insertion format persists and offers empty or filename descriptions (775ms)
+  ✓  32 [webkit] › e2e/improvements.spec.ts:82:1 › image clipboard events reach the uploader and report failure without inserting broken Markdown (514ms)
+  ✓  34 [webkit] › e2e/preview.spec.ts:60:1 › rendered GFM fits narrow and dark windows (360ms)
+  ✓  33 [webkit] › e2e/recent.spec.ts:3:1 › recent files show ten choices with full paths and support keyboard dismissal (517ms)
+
+  2 skipped
+  32 passed (5.9s)

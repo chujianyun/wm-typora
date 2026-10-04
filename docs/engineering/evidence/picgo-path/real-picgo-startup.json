@@ -1,0 +1,14 @@
+[
+  {
+    "executable": "/opt/homebrew/bin/picgo",
+    "path": "/usr/bin:/bin:/usr/sbin:/sbin",
+    "exit": 0,
+    "output": "\nrunning 1 test\nPicGo-Core version: 3.0.2\ntest uploads::core_process_tests::installed_picgo_starts ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.21s\n\n"
+  },
+  {
+    "executable": "picgo",
+    "path": "/usr/bin:/bin:/usr/sbin:/sbin",
+    "exit": 0,
+    "output": "\nrunning 1 test\nPicGo-Core version: 3.0.2\ntest uploads::core_process_tests::installed_picgo_starts ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.11s\n\n"
+  }
+]

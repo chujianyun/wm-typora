@@ -20,20 +20,80 @@ pub fn create(app: &tauri::AppHandle, path: Option<PathBuf>) -> tauri::Result<()
         .build()?;
     Ok(())
 }
-pub fn open_path(app: &tauri::AppHandle, path: PathBuf) -> tauri::Result<()> {
-    if let Some(owner) = app.state::<AppState>().registry.owner_for_path(&path)
+pub fn open_path(
+    app: &tauri::AppHandle,
+    path: PathBuf,
+    preferred: Option<&str>,
+) -> Result<(), String> {
+    let path = crate::opening::validate_path(&path)?;
+    let state = app.state::<AppState>();
+    let pending_owner = state
+        .pending
+        .lock()
+        .unwrap()
+        .iter()
+        .find(|(_, p)| *p == &path)
+        .map(|(owner, _)| owner.clone());
+    if let Some(owner) = state.registry.owner_for_path(&path).or(pending_owner)
         && let Some(w) = app.get_webview_window(&owner)
     {
-        w.show()?;
-        w.set_focus()?;
+        w.show().map_err(|e| e.to_string())?;
+        w.set_focus().map_err(|e| e.to_string())?;
+        if state.registry.owner_for_path(&path).is_some() {
+            crate::recent::record(app, &path);
+        }
         return Ok(());
     }
-    create(app, Some(path))
+    let windows = app.webview_windows();
+    let readiness = state.window_state.lock().unwrap();
+    // Do not overwrite a file already queued for a window that is still starting.
+    let available = |window: &&tauri::WebviewWindow| {
+        readiness.contains_key(window.label())
+            || !state.pending.lock().unwrap().contains_key(window.label())
+    };
+    let target = preferred
+        .and_then(|label| windows.get(label))
+        .filter(available)
+        .or_else(|| {
+            windows
+                .values()
+                .find(|w| readiness.get(w.label()) == Some(&true))
+        })
+        .or_else(|| {
+            windows
+                .values()
+                .filter(available)
+                .find(|w| w.is_focused().unwrap_or(false))
+        })
+        .or_else(|| {
+            windows
+                .values()
+                .find(|w| !state.pending.lock().unwrap().contains_key(w.label()))
+        });
+    if let Some(window) = target {
+        if readiness.contains_key(window.label()) {
+            window
+                .emit("document-open-request", path)
+                .map_err(|e| e.to_string())?;
+        } else {
+            state
+                .pending
+                .lock()
+                .unwrap()
+                .insert(window.label().into(), path);
+        }
+        window.show().map_err(|e| e.to_string())?;
+        window.set_focus().map_err(|e| e.to_string())?;
+        return Ok(());
+    }
+    drop(readiness);
+    create(app, Some(path)).map_err(|e| e.to_string())
 }
 pub fn install_menu(app: &tauri::App) -> tauri::Result<()> {
     let h = app.handle();
     let new = MenuItem::with_id(h, "document.new", "新建", true, Some("CmdOrCtrl+N"))?;
     let open = MenuItem::with_id(h, "document.open", "打开…", true, Some("CmdOrCtrl+O"))?;
+    let recent = MenuItem::with_id(h, "document.recent", "最近打开…", true, None::<&str>)?;
     let save = MenuItem::with_id(h, "document.save", "保存", true, Some("CmdOrCtrl+S"))?;
     let save_as = MenuItem::with_id(
         h,
@@ -42,14 +102,24 @@ pub fn install_menu(app: &tauri::App) -> tauri::Result<()> {
         true,
         Some("CmdOrCtrl+Shift+S"),
     )?;
+    let export_docx = MenuItem::with_id(
+        h,
+        "document.exportDocx",
+        "导出 Word（.docx）…",
+        true,
+        None::<&str>,
+    )?;
+    let export_pdf = MenuItem::with_id(h, "document.exportPdf", "导出 PDF…", true, None::<&str>)?;
     let close = MenuItem::with_id(h, "document.close", "关闭文档", true, Some("CmdOrCtrl+W"))?;
     let quit = MenuItem::with_id(h, "quit", "退出 WTypora", true, Some("CmdOrCtrl+Q"))?;
+    let settings = MenuItem::with_id(h, "app.settings", "设置…", true, Some("CmdOrCtrl+,"))?;
     let app_menu = Submenu::with_items(
         h,
         "WTypora",
         true,
         &[
             &PredefinedMenuItem::about(h, Some("关于 WTypora"), None)?,
+            &settings,
             &quit,
         ],
     )?;
@@ -60,8 +130,12 @@ pub fn install_menu(app: &tauri::App) -> tauri::Result<()> {
         &[
             &new,
             &open,
+            &recent,
             &save,
             &save_as,
+            &PredefinedMenuItem::separator(h)?,
+            &export_docx,
+            &export_pdf,
             &PredefinedMenuItem::separator(h)?,
             &close,
         ],
@@ -99,7 +173,7 @@ pub fn install_menu(app: &tauri::App) -> tauri::Result<()> {
             .into_values()
             .find(|w| w.is_focused().unwrap_or(false))
         {
-            let _ = w.emit("document-command", id);
+            let _ = crate::window_commands::send(&w, id);
         }
     });
     Ok(())

@@ -1,0 +1,35 @@
+   Compiling wtypora-desktop v0.1.0 (/Users/wuming/Documents/Coding/my/wtypora/apps/desktop/src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.69s
+     Running unittests src/lib.rs (target/debug/deps/wtypora_desktop-6fee129c69821531)
+
+running 1 test
+
+thread 'uploads::core_process_tests::core_upload_finds_sibling_runtime_with_finder_path' (2551676) panicked at apps/desktop/src-tauri/src/uploads.rs:308:9:
+
+running 1 test
+test uploads::core_process_tests::core_upload_child ... FAILED
+
+failures:
+
+failures:
+    uploads::core_process_tests::core_upload_child
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.42s
+
+
+
+thread 'uploads::core_process_tests::core_upload_child' (2551678) panicked at apps/desktop/src-tauri/src/uploads.rs:330:27:
+called `Result::unwrap()` on an `Err` value: "PicGo-Core 上传失败，请检查其图床配置。"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test uploads::core_process_tests::core_upload_finds_sibling_runtime_with_finder_path ... FAILED
+
+failures:
+
+failures:
+    uploads::core_process_tests::core_upload_finds_sibling_runtime_with_finder_path
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.43s
+
+error: test failed, to rerun pass `-p wtypora-desktop --lib`

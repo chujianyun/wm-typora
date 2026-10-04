@@ -1,3 +1,5 @@
+import { exportSnapshot, type ExportFormat } from "../export/document";
+import { loadPreferences } from "../settings/preferences";
 import { Compartment, EditorState, Prec } from "@codemirror/state";
 import {
   EditorView,
@@ -11,12 +13,10 @@ import {
   undo,
   redo,
   indentWithTab,
+  isolateHistory,
 } from "@codemirror/commands";
 import { searchKeymap } from "@codemirror/search";
-import {
-  syntaxHighlighting,
-  defaultHighlightStyle,
-} from "@codemirror/language";
+import { insertCodeBlock } from "../editor/codeBlocks";
 import type { NativeBridge } from "../native/bridge";
 import type {
   Session,
@@ -27,7 +27,9 @@ import type {
 } from "./protocol";
 import { failure } from "./protocol";
 import { fromOpened, reduceSession, type SessionEvent } from "./session";
-import { createBuffer, serialize } from "../editor/buffer";
+import { selectionToolbar } from "../editor/selectionToolbar";
+import { createBuffer, serialize, setDisplayMode } from "../editor/buffer";
+import { bridgeImageLoader, setLocalImageLoader } from "../editor/localImages";
 import { createSaveQueue, type SaveQueue } from "./saveQueue";
 import { createRecoveryQueue } from "./recovery";
 
@@ -43,6 +45,8 @@ export interface UIState {
   line: number;
   column: number;
   chars: number;
+  uploading?: boolean;
+  exportStatus?: string | null;
 }
 export class DocumentController {
   readonly view: EditorView;
@@ -55,11 +59,26 @@ export class DocumentController {
     column: 1,
     chars: 0,
   };
+  private reusable: boolean | undefined;
+  private pendingPaths: string[] = [];
+  private drainingOpen = false;
+  private uploadAnchor: { from: number; to: number; valid: boolean } | null =
+    null;
+  private mode: "source" | "live" = "live";
+  setMode(mode: "source" | "live") {
+    if (this.view.composing) return false;
+    this.mode = mode;
+    setDisplayMode(this.view, mode);
+    this.view.focus();
+    return true;
+  }
   private subscribers = new Set<() => void>();
   private queue: SaveQueue | null = null;
   private recovery: ReturnType<typeof createRecoveryQueue> | null = null;
   private lock = new Compartment();
   private timer: ReturnType<typeof setInterval> | undefined;
+  private exportStatusTimer: ReturnType<typeof setTimeout> | undefined;
+  private warningTimer: ReturnType<typeof setTimeout> | undefined;
   private disposed = false;
   private inspecting = false;
   private composing = false;
@@ -71,6 +90,9 @@ export class DocumentController {
     readonly bridge: NativeBridge,
   ) {
     this.view = new EditorView({ parent: host });
+    setLocalImageLoader(
+      bridgeImageLoader(bridge, () => this.ui.session?.path ?? null),
+    );
   }
   subscribe(fn: () => void) {
     this.subscribers.add(fn);
@@ -80,11 +102,47 @@ export class DocumentController {
   }
   private publish(p: Partial<UIState> = {}) {
     if (this.disposed) return;
+    if ("warning" in p) clearTimeout(this.warningTimer);
     this.ui = { ...this.ui, ...p };
     for (const f of this.subscribers) f();
+    if (
+      this.pendingPaths.length &&
+      this.ui.session &&
+      !this.ui.busy &&
+      !this.ui.modal &&
+      !this.composing &&
+      !this.drainingOpen
+    ) {
+      this.drainingOpen = true;
+      queueMicrotask(() => {
+        this.drainingOpen = false;
+        if (this.disposed || this.ui.busy || this.ui.modal || this.composing)
+          return;
+        const path = this.pendingPaths.shift();
+        if (path) void this.openPath(path);
+      });
+    }
+    if (this.ui.session) {
+      const reusable =
+        !this.ui.session.path &&
+        this.ui.chars === 0 &&
+        !this.ui.busy &&
+        !this.ui.modal &&
+        !this.ui.uploading;
+      if (reusable !== this.reusable) {
+        this.reusable = reusable;
+        void this.bridge.windowState(reusable).catch(() => {});
+      }
+    }
   }
-  private error(e: unknown) {
+  private error(e: unknown, dismissAfterMs?: number) {
     this.publish({ warning: failure(e).message });
+    if (dismissAfterMs && !this.disposed) {
+      this.warningTimer = setTimeout(
+        () => this.publish({ warning: null }),
+        dismissAfterMs,
+      );
+    }
   }
   private dispatch(e: SessionEvent) {
     if (!this.ui.session) return;
@@ -92,6 +150,9 @@ export class DocumentController {
   }
   text() {
     return serialize(this.view.state);
+  }
+  reportOpenError(message: string) {
+    this.error({ message });
   }
   private setReadonly(value: boolean) {
     this.view.dispatch({
@@ -113,59 +174,89 @@ export class DocumentController {
     });
   }
   private install(o: Opened) {
+    clearTimeout(this.exportStatusTimer);
     this.queue?.dispose();
     this.recovery?.dispose();
     this.recoveryId = crypto.randomUUID();
     this.lastEvent = null;
-    this.publish({ session: fromOpened(o), modal: null, warning: null });
+    this.publish({
+      session: fromOpened(o),
+      modal: null,
+      warning: null,
+      exportStatus: null,
+    });
     this.view.setState(
-      createBuffer(o.text, o.format, o.readOnly, [
-        this.lock.of(
-          Prec.highest([
-            EditorState.readOnly.of(o.readOnly),
-            EditorView.editable.of(!o.readOnly),
+      createBuffer(
+        o.text,
+        o.format,
+        o.readOnly,
+        [
+          this.lock.of(
+            Prec.highest([
+              EditorState.readOnly.of(o.readOnly),
+              EditorView.editable.of(!o.readOnly),
+            ]),
+          ),
+          keymap.of([
+            ...defaultKeymap,
+            ...historyKeymap,
+            ...searchKeymap,
+            indentWithTab,
           ]),
-        ),
-        keymap.of([
-          ...defaultKeymap,
-          ...historyKeymap,
-          ...searchKeymap,
-          indentWithTab,
-        ]),
-        drawSelection(),
-        syntaxHighlighting(defaultHighlightStyle),
-        EditorView.lineWrapping,
-        placeholder("从这里开始写作…"),
-        EditorView.contentAttributes.of({
-          "aria-label": "文档编辑器",
-          spellcheck: "true",
-        }),
-        EditorView.updateListener.of((update) => {
-          if (update.docChanged && this.ui.session) {
-            this.dispatch({
-              type: "edited",
-              version: this.ui.session.version + 1,
-            });
-            this.queue?.edited();
-            if (!this.composing) this.recovery?.schedule();
-          }
-          if (update.docChanged || update.selectionSet) this.stats();
-        }),
-        EditorView.domEventHandlers({
-          compositionstart: () => {
-            this.composing = true;
-            this.queue?.setComposing(true);
-          },
-          compositionend: () => {
-            setTimeout(() => {
-              if (this.disposed) return;
-              this.composing = false;
-              this.queue?.setComposing(false);
-              this.recovery?.schedule();
-            }, 0);
-          },
-        }),
-      ]),
+          drawSelection(),
+          selectionToolbar((files) => void this.pasteImages(files)),
+          EditorView.lineWrapping,
+          placeholder("从这里开始写作…"),
+          EditorView.contentAttributes.of({
+            "aria-label": "文档编辑器",
+            spellcheck: "true",
+          }),
+          EditorView.updateListener.of((update) => {
+            if (update.docChanged && this.uploadAnchor) {
+              const anchor = this.uploadAnchor;
+              update.changes.iterChangedRanges((from, to) => {
+                if (from < anchor.to && to > anchor.from) anchor.valid = false;
+              });
+              anchor.from = update.changes.mapPos(anchor.from, -1);
+              anchor.to = update.changes.mapPos(anchor.to, -1);
+            }
+            if (update.docChanged && this.ui.session) {
+              this.dispatch({
+                type: "edited",
+                version: this.ui.session.version + 1,
+              });
+              this.queue?.edited();
+              if (!this.composing) this.recovery?.schedule();
+            }
+            if (update.docChanged || update.selectionSet) this.stats();
+          }),
+          EditorView.domEventHandlers({
+            paste: (event) => {
+              const files = Array.from(event.clipboardData?.files ?? []).filter(
+                (file) => file.type.startsWith("image/"),
+              );
+              if (!files.length) return false;
+              event.preventDefault();
+              void this.pasteImages(files);
+              return true;
+            },
+            compositionstart: () => {
+              this.composing = true;
+              this.queue?.setComposing(true);
+            },
+            compositionend: () => {
+              setTimeout(() => {
+                if (this.disposed) return;
+                this.composing = false;
+                this.publish();
+                this.queue?.setComposing(false);
+                this.recovery?.schedule();
+              }, 0);
+            },
+          }),
+        ],
+        this.mode,
+      ),
     );
     this.queue = createSaveQueue({
       getSession: () => this.ui.session!,
@@ -294,6 +385,10 @@ export class DocumentController {
     }
   }
   async close() {
+    if (this.ui.uploading) {
+      this.error("图片正在上传，请等待完成后关闭。");
+      return;
+    }
     if (this.ui.busy || !this.ui.session) return;
     await this.queue?.idle();
     const s = this.ui.session!;
@@ -475,6 +570,181 @@ export class DocumentController {
       this.error(e);
     }
   }
+  async openPath(path: string) {
+    if (!this.ui.session || this.ui.busy || this.ui.modal || this.composing) {
+      this.pendingPaths.push(path);
+      return;
+    }
+    await this.openDocument(path);
+  }
+  private async openDocument(path?: string) {
+    const before = this.ui.session;
+    if (!before || this.ui.busy || this.composing) return;
+    const replace =
+      !before.path &&
+      this.view.state.doc.length === 0 &&
+      !this.ui.uploading &&
+      !this.ui.modal
+        ? before
+        : undefined;
+    this.publish({ busy: true, warning: null });
+    this.setReadonly(true);
+    try {
+      const opened = path
+        ? await this.bridge.openPath(path, replace)
+        : await this.bridge.open(replace);
+      if (opened && !this.disposed) {
+        this.install(opened);
+        this.view.focus();
+      }
+    } catch (error) {
+      this.error(error);
+    } finally {
+      if (!this.disposed) {
+        this.setReadonly(this.ui.session!.readOnly);
+        this.publish({ busy: false });
+      }
+    }
+  }
+  async pasteImages(files: File[]) {
+    if (
+      this.ui.busy ||
+      this.ui.session?.readOnly ||
+      this.ui.modal ||
+      !this.ui.session
+    )
+      return;
+    if (this.ui.uploading) {
+      this.error("正在上传图片，请完成后再粘贴。");
+      return;
+    }
+    const settings = loadPreferences().upload;
+    if (settings.provider === "none") {
+      this.error("请在「设置 → 粘贴图片」中选择图床软件。");
+      return;
+    }
+    if (
+      files.some(
+        (file) =>
+          file.size > 10 * 1024 * 1024 ||
+          ![
+            "image/png",
+            "image/jpeg",
+            "image/gif",
+            "image/webp",
+            "image/bmp",
+          ].includes(file.type),
+      )
+    ) {
+      this.error("支持 PNG、JPEG、GIF、WebP、BMP，每张图片最大 10 MB。", 5000);
+      return;
+    }
+    const session = this.ui.session;
+    const { from, to } = this.view.state.selection.main;
+    const anchor = (this.uploadAnchor = { from, to, valid: true });
+    this.publish({ uploading: true, warning: null });
+    try {
+      for (const file of files) {
+        const bytes = Array.from(new Uint8Array(await file.arrayBuffer()));
+        const url = await this.bridge.uploadImage(bytes, file.type, settings);
+        const parsed = new URL(url);
+        if (!["http:", "https:"].includes(parsed.protocol))
+          throw new Error("图床返回了无效的图片链接。");
+        if (
+          this.disposed ||
+          this.ui.session?.sessionId !== session.sessionId ||
+          this.ui.session.epoch !== session.epoch
+        )
+          return;
+        if (!anchor.valid)
+          throw new Error(
+            "粘贴位置的文字已被修改，未插入图片。图片可在图床软件中找回。",
+          );
+        const alt =
+          settings.imageAlt === "empty"
+            ? ""
+            : file.name.replace(/[\\[\]\r\n]/g, "_") || "图片";
+        const safeUrl = parsed.href.replace(
+          /[()<>]/g,
+          (char) => `%${char.charCodeAt(0).toString(16)}`,
+        );
+        const insert = `![${alt}](${safeUrl})\n`;
+        const selection = this.view.state.selection;
+        const atUpload =
+          selection.ranges.length === 1 &&
+          selection.main.from === anchor.from &&
+          selection.main.to === anchor.to;
+        this.uploadAnchor = null;
+        // Preserve the user's current selection if they have continued typing elsewhere.
+        this.view.dispatch({
+          changes: { from: anchor.from, to: anchor.to, insert },
+          annotations: isolateHistory.of("full"),
+          ...(atUpload
+            ? {
+                selection: { anchor: anchor.from + insert.length },
+                scrollIntoView: true,
+              }
+            : {}),
+          userEvent: "input.paste",
+        });
+        anchor.from += insert.length;
+        anchor.to = anchor.from;
+        this.uploadAnchor = anchor;
+      }
+    } catch (error) {
+      if (!this.disposed) this.error(error);
+    } finally {
+      this.uploadAnchor = null;
+      if (!this.disposed) this.publish({ uploading: false });
+    }
+  }
+  async export(format: ExportFormat) {
+    const session = this.ui.session;
+    if (!session || this.ui.busy || this.ui.modal) return;
+    if (this.composing || this.view.composing) {
+      this.error("请先完成输入法组字，再导出。");
+      return;
+    }
+    if (this.ui.uploading) {
+      this.error("图片正在上传，请等待完成后导出。");
+      return;
+    }
+    const text = this.text();
+    clearTimeout(this.exportStatusTimer);
+    this.publish({ busy: true, warning: null, exportStatus: "正在导出…" });
+    this.setReadonly(true);
+    try {
+      const result = await exportSnapshot(
+        this.bridge,
+        text,
+        session.path,
+        format,
+      );
+      if (this.disposed) return;
+      this.publish({
+        exportStatus: result.path
+          ? `已导出：${result.path.split(/[\\/]/).at(-1)}${result.missing ? `（${result.missing} 张图片未能导出，已保留占位说明）` : ""}`
+          : null,
+      });
+      if (result.path) {
+        // Best-effort convenience: the status line above is the source of truth.
+        void this.bridge.revealInFolder(result.path).catch(() => {});
+        this.exportStatusTimer = setTimeout(() => {
+          this.exportStatusTimer = undefined;
+          this.publish({ exportStatus: null });
+        }, 3000);
+      }
+    } catch (error) {
+      this.publish({ exportStatus: null });
+      this.error(`导出失败：${failure(error).message}`);
+    } finally {
+      if (!this.disposed) {
+        this.setReadonly(session.readOnly);
+        this.publish({ busy: false });
+        this.view.focus();
+      }
+    }
+  }
   async command(id: string) {
     try {
       switch (id) {
@@ -482,13 +752,19 @@ export class DocumentController {
           await this.bridge.newWindow();
           break;
         case "document.open":
-          await this.bridge.open();
+          await this.openDocument();
           break;
         case "document.save":
           await this.save();
           break;
         case "document.saveAs":
           await this.save(true);
+          break;
+        case "document.exportDocx":
+          await this.export("docx");
+          break;
+        case "document.exportPdf":
+          await this.export("pdf");
           break;
         case "document.close":
           await this.close();
@@ -499,6 +775,10 @@ export class DocumentController {
         case "edit.redo":
           this.redo();
           break;
+        case "edit.codeBlock":
+          if (!this.ui.busy && !this.ui.modal && this.ui.session)
+            insertCodeBlock(this.view);
+          break;
       }
     } catch (e) {
       this.error(e);
@@ -506,9 +786,12 @@ export class DocumentController {
   }
   dispose() {
     this.disposed = true;
+    clearTimeout(this.warningTimer);
     clearInterval(this.timer);
+    clearTimeout(this.exportStatusTimer);
     this.queue?.dispose();
     this.recovery?.dispose();
+    setLocalImageLoader(null);
     this.view.destroy();
     this.subscribers.clear();
   }

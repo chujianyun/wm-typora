@@ -1,0 +1,45 @@
+
+> e2e
+> npm run e2e -w @wtypora/desktop -- images.spec.ts preview.spec.ts improvements.spec.ts
+
+
+> @wtypora/desktop@0.1.0 e2e
+> playwright test images.spec.ts preview.spec.ts improvements.spec.ts
+
+[WebServer] (node:73256) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 18 tests using 5 workers
+
+(node:73324) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:73323) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:73320) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:73321) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:73322) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   4 [chromium] › e2e/improvements.spec.ts:3:1 › Enter keeps separate visual lines after the paragraph is rendered (912ms)
+  ✓   2 [chromium] › e2e/preview.spec.ts:5:1 › writing renders in place, clicking edits a block and leaving renders it again (955ms)
+  ✓   5 [chromium] › e2e/images.spec.ts:9:1 › remote images load under the production image policy and fit the writing surface (968ms)
+  ✓   1 [webkit] › e2e/improvements.spec.ts:3:1 › Enter keeps separate visual lines after the paragraph is rendered (1.0s)
+  ✓   3 [webkit] › e2e/images.spec.ts:9:1 › remote images load under the production image policy and fit the writing surface (1.0s)
+  ✓   8 [chromium] › e2e/images.spec.ts:75:1 › failed remote images show a useful message and retain their Markdown (533ms)
+  ✓  10 [webkit] › e2e/images.spec.ts:75:1 › failed remote images show a useful message and retain their Markdown (584ms)
+  ✓   7 [chromium] › e2e/preview.spec.ts:33:1 › mode changes retain caret and history and edits from source render immediately (727ms)
+  ✓   6 [chromium] › e2e/improvements.spec.ts:38:1 › themes and uploader preferences persist without changing Markdown (784ms)
+  ✓  13 [chromium] › e2e/preview.spec.ts:60:1 › rendered GFM fits narrow and dark windows (476ms)
+  ✓   9 [webkit] › e2e/improvements.spec.ts:38:1 › themes and uploader preferences persist without changing Markdown (1.3s)
+  ✓  14 [chromium] › e2e/improvements.spec.ts:82:1 › image clipboard events reach the uploader and report failure without inserting broken Markdown (612ms)
+  ✓  11 [chromium] › e2e/images.spec.ts:92:1 › image insertion format persists and offers empty or filename descriptions (788ms)
+  ✓  12 [webkit] › e2e/images.spec.ts:92:1 › image insertion format persists and offers empty or filename descriptions (984ms)
+(node:73491) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  15 [webkit] › e2e/improvements.spec.ts:82:1 › image clipboard events reach the uploader and report failure without inserting broken Markdown (495ms)
+  ✓  16 [webkit] › e2e/preview.spec.ts:5:1 › writing renders in place, clicking edits a block and leaving renders it again (524ms)
+  ✓  17 [webkit] › e2e/preview.spec.ts:33:1 › mode changes retain caret and history and edits from source render immediately (546ms)
+  ✓  18 [webkit] › e2e/preview.spec.ts:60:1 › rendered GFM fits narrow and dark windows (311ms)
+
+  18 passed (5.2s)

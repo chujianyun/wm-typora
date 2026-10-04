@@ -414,6 +414,29 @@ impl Registry {
         s.observed_error = None;
         Ok(o)
     }
+    /// Replace only an untitled session; the caller freezes its editor first.
+    /// Opening/decoding must succeed before the old session is released.
+    pub fn replace_untitled(
+        &self,
+        path: &Path,
+        id: &str,
+        epoch: u64,
+        owner: &str,
+    ) -> Result<Opened, CoreError> {
+        {
+            let mut sessions = self.lock()?;
+            let session = Self::grant(&mut sessions, id, epoch, owner)?;
+            if session.opened.path.is_some() {
+                return Err(CoreError::new("notEmpty", "只能替换未命名的空白窗口"));
+            }
+        }
+        let opened = self.open(path, owner)?;
+        if let Err(error) = self.release(id, owner) {
+            let _ = self.release(&opened.session_id, owner);
+            return Err(error);
+        }
+        Ok(opened)
+    }
     pub fn release(&self, id: &str, owner: &str) -> Result<(), CoreError> {
         let mut sessions = self.lock()?;
         if sessions.get(id).is_none_or(|s| s.owner != owner) {

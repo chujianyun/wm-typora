@@ -1,0 +1,58 @@
+
+> e2e
+> npm run e2e -w @wtypora/desktop -- --project=chromium images.spec.ts -g remote images load
+
+
+> @wtypora/desktop@0.1.0 e2e
+> playwright test --project=chromium images.spec.ts -g remote images load
+
+[WebServer] (node:72452) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:72453) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium] › e2e/images.spec.ts:9:1 › remote images load under the production image policy and fit the writing surface (5.4s)
+
+
+  1) [chromium] › e2e/images.spec.ts:9:1 › remote images load under the production image policy and fit the writing surface 
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  getByRole('textbox', { name: '文档编辑器' }).locator('img')
+    Expected: 1
+    Received: 0
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveCount" getByRole('textbox', { name: '文档编辑器' }).locator('img') with timeout 5000ms
+      - waiting for getByRole('textbox', { name: '文档编辑器' }).locator('img')
+        14 × locator resolved to 0 elements
+           - unexpected value "0"
+
+
+      24 |     await page.screenshot({ path: "../../docs/engineering/evidence/image-preview/before.png" });
+      25 |   const image = editor.locator("img");
+    > 26 |   await expect(image).toHaveCount(1);
+         |                       ^
+      27 |   await expect.poll(() => image.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth === 1600)).toBe(true);
+      28 |   await expect(image).toBeVisible();
+      29 |   await expect(image).toHaveAttribute("alt", "");
+        at /Users/wuming/Documents/Coding/my/wtypora/apps/desktop/e2e/images.spec.ts:26:23
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/images-remote-images-load--f3c1b-and-fit-the-writing-surface-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/images-remote-images-load--f3c1b-and-fit-the-writing-surface-chromium/error-context.md
+
+  1 failed
+    [chromium] › e2e/images.spec.ts:9:1 › remote images load under the production image policy and fit the writing surface 
+npm error Lifecycle script `e2e` failed with error:
+npm error code 1
+npm error path /Users/wuming/Documents/Coding/my/wtypora/apps/desktop
+npm error workspace @wtypora/desktop@0.1.0
+npm error location /Users/wuming/Documents/Coding/my/wtypora/apps/desktop
+npm error command failed
+npm error command sh -c playwright test --project=chromium images.spec.ts -g 'remote images load'

@@ -1,0 +1,20 @@
+   Compiling wtypora-desktop v0.1.0 (/Users/wuming/Documents/Coding/my/wtypora/apps/desktop/src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.68s
+     Running unittests src/lib.rs (target/debug/deps/wtypora_desktop-6fee129c69821531)
+
+running 6 tests
+test uploads::core_process_tests::core_upload_child ... ignored, subprocess entry point with an isolated PATH
+test uploads::core_process_tests::installed_picgo_starts ... ignored, manual smoke test: requires a locally installed PicGo-Core
+test uploads::tests::only_contacts_local_picgo_and_accepts_image_urls ... ok
+test uploads::transport_tests::picgo_receives_the_pasted_file_and_temp_file_is_removed_after_success ... ok
+test uploads::transport_tests::failure_and_unsafe_results_do_not_escape_or_leak_temporary_files ... ok
+test uploads::core_process_tests::core_upload_finds_sibling_runtime_with_finder_path ... ok
+
+test result: ok. 4 passed; 0 failed; 2 ignored; 0 measured; 8 filtered out; finished in 0.83s
+
+     Running unittests src/main.rs (target/debug/deps/wtypora_desktop-4ec562ac20b23f41)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

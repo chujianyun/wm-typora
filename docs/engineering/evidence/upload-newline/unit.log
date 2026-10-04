@@ -1,0 +1,50 @@
+
+> test
+> npm test -w @wtypora/desktop --run
+
+npm warn Unknown cli config "--run". This will stop working in the next major version of npm.
+
+> @wtypora/desktop@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.0 /Users/wuming/Documents/Coding/my/wtypora/apps/desktop
+
+ ❯ src/document/controller.test.ts (18 tests | 1 failed) 362ms
+   × moves below the final image, supports immediate typing and undo/redo 11ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/document/controller.test.ts > moves below the final image, supports immediate typing and undo/redo
+AssertionError: expected '![](https://example.com/photo.png)\n' to be '![](https://example.com/photo.png)\n!…' // Object.is equality
+
+- Expected
++ Received
+
+- ![](https://example.com/photo.png)
+  ![](https://example.com/photo.png)
+
+
+ ❯ src/document/controller.test.ts:304:20
+    302|   expect(c.text()).toBe(images + "继续写作");
+    303|   c.undo();
+    304|   expect(c.text()).toBe(images);
+       |                    ^
+    305|   c.redo();
+    306|   expect(c.text()).toBe(images + "继续写作");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 12 passed (13)
+      Tests  1 failed | 89 passed (90)
+   Start at  23:24:15
+   Duration  1.46s (environment 53%, tests 17%, import 15%, setup 9%, transform 6%)
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path /Users/wuming/Documents/Coding/my/wtypora/apps/desktop
+npm error workspace @wtypora/desktop@0.1.0
+npm error location /Users/wuming/Documents/Coding/my/wtypora/apps/desktop
+npm error command failed
+npm error command sh -c vitest run

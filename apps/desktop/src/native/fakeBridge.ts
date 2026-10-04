@@ -1,13 +1,33 @@
+import type { ExportRequest, ExportImage } from "../export/document";
 // Explicit development preview/test adapter; never selected as a production fallback.
 import type { NativeBridge } from "./bridge";
 import type {
   Opened,
+  SessionKey,
   SaveRequest,
   SaveReply,
   RecoverySnapshot,
   Revision,
 } from "../document/protocol";
 export class FakeBridge implements NativeBridge {
+  exports: ExportRequest[] = [];
+  async exportDocument(request: ExportRequest): Promise<string | null> {
+    this.exports.push(request);
+    return `/exports/${request.name}`;
+  }
+  revealed: string[] = [];
+  async revealInFolder(path: string): Promise<void> {
+    this.revealed.push(path);
+  }
+  async exportImage(_url: string): Promise<ExportImage> {
+    throw new Error("浏览器预览不读取外部图片");
+  }
+  localImages = new Map<string, ExportImage>();
+  async readLocalImage(source: string, _documentPath: string | null) {
+    const file = this.localImages.get(source);
+    if (!file) throw new Error("图片文件不存在或无法读取");
+    return file;
+  }
   opened: Opened = {
     sessionId: crypto.randomUUID(),
     epoch: 1,
@@ -18,6 +38,10 @@ export class FakeBridge implements NativeBridge {
     readOnly: false,
   };
   disk = "";
+  recentPaths: string[] = [];
+  async recentFiles() {
+    return [...this.recentPaths];
+  }
   closed = false;
   cancelSaveAs = false;
   failSave = false;
@@ -44,7 +68,16 @@ export class FakeBridge implements NativeBridge {
       revision: null,
     };
   }
-  async open() {}
+  async open(_replace?: SessionKey): Promise<Opened | null> {
+    return null;
+  }
+  async openPath(_path: string, _replace?: SessionKey): Promise<Opened | null> {
+    return null;
+  }
+  async windowState() {}
+  async uploadImage(): Promise<string> {
+    throw new Error("浏览器演示不连接图床，请在桌面版中使用。");
+  }
   async save(r: SaveRequest): Promise<SaveReply> {
     if (this.failSave)
       return {

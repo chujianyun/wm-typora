@@ -1,0 +1,56 @@
+
+> e2e
+> npm run e2e -w @wtypora/desktop -- image-lines.spec.ts --project chromium
+
+
+> @wtypora/desktop@0.1.0 e2e
+> playwright test image-lines.spec.ts --project chromium
+
+[WebServer] (node:29029) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:29030) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium] › e2e/image-lines.spec.ts:7:1 › standalone image previews while editing adjacent text without blank lines (5.5s)
+
+
+  1) [chromium] › e2e/image-lines.spec.ts:7:1 › standalone image previews while editing adjacent text without blank lines 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('textbox', { name: '文档编辑器' }).locator('img')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('textbox', { name: '文档编辑器' }).locator('img') with timeout 5000ms
+      - waiting for getByRole('textbox', { name: '文档编辑器' }).locator('img')
+
+
+      19 |   }
+      20 |   const image = editor.locator("img");
+    > 21 |   await expect(image).toBeVisible();
+         |                       ^
+      22 |   await expect.poll(() => image.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth === 800)).toBe(true);
+      23 |   await page.screenshot({ path: `../../docs/engineering/evidence/image-no-blank-line/after-${info.project.name}.png` });
+      24 |   await editor.press("ArrowUp");
+        at /Users/wuming/Documents/Coding/my/wtypora/apps/desktop/e2e/image-lines.spec.ts:21:23
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/image-lines-standalone-ima-0520f-nt-text-without-blank-lines-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/image-lines-standalone-ima-0520f-nt-text-without-blank-lines-chromium/error-context.md
+
+  1 failed
+    [chromium] › e2e/image-lines.spec.ts:7:1 › standalone image previews while editing adjacent text without blank lines 
+npm error Lifecycle script `e2e` failed with error:
+npm error code 1
+npm error path /Users/wuming/Documents/Coding/my/wtypora/apps/desktop
+npm error workspace @wtypora/desktop@0.1.0
+npm error location /Users/wuming/Documents/Coding/my/wtypora/apps/desktop
+npm error command failed
+npm error command sh -c playwright test image-lines.spec.ts --project chromium

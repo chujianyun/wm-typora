@@ -1,0 +1,25 @@
+
+> e2e
+> npm run e2e -w @wtypora/desktop -- images.spec.ts
+
+
+> @wtypora/desktop@0.1.0 e2e
+> playwright test images.spec.ts
+
+[WebServer] (node:72878) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 6 tests using 2 workers
+
+(node:72880) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:72879) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › e2e/images.spec.ts:9:1 › remote images load under the production image policy and fit the writing surface (474ms)
+  ✓  3 [chromium] › e2e/images.spec.ts:75:1 › failed remote images show a useful message and retain their Markdown (260ms)
+  ✓  2 [webkit] › e2e/images.spec.ts:9:1 › remote images load under the production image policy and fit the writing surface (738ms)
+  ✓  4 [chromium] › e2e/images.spec.ts:92:1 › image insertion format persists and offers empty or filename descriptions (468ms)
+  ✓  5 [webkit] › e2e/images.spec.ts:75:1 › failed remote images show a useful message and retain their Markdown (334ms)
+  ✓  6 [webkit] › e2e/images.spec.ts:92:1 › image insertion format persists and offers empty or filename descriptions (477ms)
+
+  6 passed (2.6s)

@@ -1,0 +1,39 @@
+{
+  "installed": "/Applications/WTypora.app",
+  "sha256": "6c6ddf26888482dac2ac4103ed5d20008cfbf10fa42be6fbf33b7d0a0e1f184f",
+  "removedCopies": [
+    {
+      "previousPath": "/Applications/WTypora.app",
+      "trashPath": "/Users/wuming/.Trash/WTypora-old-20260905-234647-1.app"
+    },
+    {
+      "previousPath": "/Users/wuming/Documents/Coding/my/wtypora-foundation/target/debug/bundle/macos/WTypora Foundation.app",
+      "trashPath": "/Users/wuming/.Trash/WTypora-old-20260905-234647-2.app"
+    },
+    {
+      "previousPath": "/Users/wuming/Documents/Coding/my/wtypora-foundation/target/debug/bundle/macos/WTypora.app",
+      "trashPath": "/Users/wuming/.Trash/WTypora-old-20260905-234647-3.app"
+    },
+    {
+      "previousPath": "/Users/wuming/Library/Caches/wtypora-install.DYdJ2D/WTypora Foundation.app",
+      "trashPath": "/Users/wuming/.Trash/WTypora-old-20260905-234647-5.app"
+    },
+    {
+      "previousPath": "/Users/wuming/Library/Caches/wtypora-install.c2OMme/WTypora Foundation.app",
+      "trashPath": "/Users/wuming/.Trash/WTypora-old-20260905-234647-6.app"
+    },
+    {
+      "previousPath": "/Users/wuming/Library/Caches/wtypora-install.AUMYLd/WTypora.app",
+      "trashPath": "/Users/wuming/.Trash/WTypora-old-20260905-234647-7.app"
+    },
+    {
+      "previousPath": "/Users/wuming/Library/Caches/wtypora-running-20260905-234535/WTypora.app",
+      "trashPath": "/Users/wuming/.Trash/WTypora-old-20260905-234647-8.app"
+    },
+    {
+      "previousPath": "/Users/wuming/Library/Caches/wtypora-ui.U1U4jM/WTypora-Installed.app",
+      "trashPath": "/Users/wuming/.Trash/WTypora-old-ui-20260905-235459.app"
+    }
+  ],
+  "count": 8
+}

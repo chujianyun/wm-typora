@@ -61,7 +61,7 @@ button:focus-visible {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 60%;
+  max-width: calc(100% - 300px);
 }
 .modified {
   color: var(--accent);
@@ -70,26 +70,45 @@ button:focus-visible {
   position: absolute;
   right: 18px;
   display: flex;
-  gap: 16px;
+  gap: 8px;
   align-items: center;
 }
-.mode-label {
-  font-size: 10px;
-  letter-spacing: 1px;
+.mode-switch {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 6px;
+  background: var(--panel);
+}
+.mode-switch button {
+  border: 0;
+  font-size: 11px;
+  line-height: 20px;
+  padding: 0 9px;
   color: var(--muted);
+}
+.mode-switch button[aria-pressed="true"] {
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: 0 1px 3px #0001;
 }
 .more {
   border: 0;
-  font-size: 24px;
-  line-height: 20px;
-  padding: 0 5px;
-  color: #999;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--muted);
 }
 .document-menu {
   position: absolute;
   top: 35px;
   right: 18px;
-  width: 195px;
+  width: 220px;
+  max-height: calc(100dvh - 70px);
+  overflow-y: auto;
   background: var(--bg);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -109,10 +128,83 @@ button:focus-visible {
   font: 11px system-ui;
   color: var(--muted);
 }
+.dialog.recent-dialog {
+  width: min(600px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+.recent-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.recent-dialog > h2,
+.recent-dialog > p,
+.recent-dialog > .dialog-actions {
+  flex-shrink: 0;
+}
+.recent-files {
+  list-style: none;
+  margin: 16px 0;
+  padding: 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+.recent-files button {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 10px 12px;
+  text-align: left;
+  border: 0;
+}
+.recent-files strong,
+.recent-files span {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.recent-files span {
+  font-size: 12px;
+  color: var(--muted);
+}
 .writing-area {
   flex: 1;
   min-height: 0;
   overflow: hidden;
+}
+.open-hint {
+  padding: 12px 20px 22px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 12px;
+}
+.open-hint button {
+  border: 0;
+  color: var(--accent);
+  padding: 4px;
+}
+.drop-overlay {
+  position: fixed;
+  inset: 50px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  z-index: 30;
+  border: 2px dashed var(--accent);
+  border-radius: 12px;
+  color: var(--accent);
+  background: var(--bg);
+  opacity: 0.96;
+  pointer-events: none;
+  font-size: 20px;
+}
+.drop-overlay span {
+  font-size: 12px;
+  color: var(--muted);
 }
 .cm-editor {
   height: 100%;
@@ -311,7 +403,8 @@ button:focus-visible {
   border-color: var(--line) !important;
 }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]),
+  :root[data-theme="system"] {
     --bg: #252525;
     --text: #ccc;
     --muted: #777;
@@ -319,16 +412,22 @@ button:focus-visible {
     --panel: #2d2d2d;
     --accent: #4d8fbd;
   }
-  .notice.error {
+  :root:not([data-theme]) .notice.error,
+  :root[data-theme="system"] .notice.error {
     background: #453822;
     color: #dfc99d;
   }
-  .cm-selectionBackground {
+  :root:not([data-theme]) .cm-selectionBackground,
+  :root[data-theme="system"] .cm-selectionBackground {
     background: #3e5263 !important;
   }
-  .document-name {
+  :root:not([data-theme]) .document-name,
+  :root[data-theme="system"] .document-name {
     color: #999;
   }
+}
+:root[data-theme="night"] .cm-selectionBackground {
+  background: #3e5263 !important;
 }
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -341,8 +440,5 @@ button:focus-visible {
   }
   .statusbar div {
     gap: 9px;
-  }
-  .mode-label {
-    display: none;
   }
 }

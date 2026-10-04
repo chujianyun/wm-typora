@@ -1,0 +1,8 @@
+
+thread 'main' (1475987) panicked at /Users/wuming/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-2.11.5/src/lib.rs:734:7:
+state() called before manage() for wtypora_desktop::AppState
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at ./rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at ./rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/core/src/panicking.rs:80:14

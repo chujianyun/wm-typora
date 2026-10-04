@@ -1,0 +1,59 @@
+
+> @wtypora/desktop@0.1.0 tauri
+> tauri build --debug --bundles app --config {"identifier":"com.wuming.wtypora.paste-validation","productName":"WTypora Paste Validation"}
+
+        Info Looking up installed tauri packages to check mismatched versions...
+     Running beforeBuildCommand `npm run build`
+
+> @wtypora/desktop@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.2.2 building client environment for production...
+transforming...
+✓ 309 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                             0.58 kB │ gzip:   0.32 kB
+dist/assets/index-DLZNO_T0.css             10.24 kB │ gzip:   2.90 kB
+dist/assets/rolldown-runtime-hePW80VL.js    0.71 kB │ gzip:   0.42 kB
+dist/assets/index-G05azf_D.js             200.38 kB │ gzip:  60.14 kB
+dist/assets/react-BCfzgTKi.js             377.35 kB │ gzip: 116.34 kB
+dist/assets/editor-Mm-HIp4s.js            527.02 kB │ gzip: 182.54 kB
+
+✓ built in 92ms
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+   Compiling objc2-exception-helper v0.1.1
+   Compiling wtypora-desktop v0.1.0 (/Users/wuming/Documents/Coding/my/wtypora/apps/desktop/src-tauri)
+   Compiling objc2 v0.6.4
+   Compiling block2 v0.6.2
+   Compiling objc2-core-foundation v0.3.2
+   Compiling dispatch2 v0.3.1
+   Compiling objc2-foundation v0.3.2
+   Compiling objc2-app-kit v0.3.2
+   Compiling objc2-web-kit v0.3.2
+   Compiling tao v0.35.3
+   Compiling window-vibrancy v0.6.0
+   Compiling muda v0.19.3
+   Compiling rfd v0.16.0
+   Compiling wry v0.55.1
+   Compiling tauri-runtime v2.11.3
+   Compiling tauri-runtime-wry v2.11.4
+   Compiling tauri v2.11.5
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 15.01s
+       Built application at: /Users/wuming/Documents/Coding/my/wtypora/target/debug/wtypora-desktop
+    Bundling WTypora Paste Validation.app (/Users/wuming/Documents/Coding/my/wtypora/target/debug/bundle/macos/WTypora Paste Validation.app)
+     Signing with identity "-"
+Signing with identity "-"
+Signing /Users/wuming/Documents/Coding/my/wtypora/target/debug/bundle/macos/WTypora Paste Validation.app/Contents/MacOS/wtypora-desktop
+/Users/wuming/Documents/Coding/my/wtypora/target/debug/bundle/macos/WTypora Paste Validation.app/Contents/MacOS/wtypora-desktop: replacing existing signature
+Signing with identity "-"
+Signing /Users/wuming/Documents/Coding/my/wtypora/target/debug/bundle/macos/WTypora Paste Validation.app
+/Users/wuming/Documents/Coding/my/wtypora/target/debug/bundle/macos/WTypora Paste Validation.app: replacing existing signature
+        Warn skipping app notarization, no APPLE_ID & APPLE_PASSWORD & APPLE_TEAM_ID or APPLE_API_KEY & APPLE_API_ISSUER & APPLE_API_KEY_PATH environment variables found
+    Finished 1 bundle at:
+        /Users/wuming/Documents/Coding/my/wtypora/target/debug/bundle/macos/WTypora Paste Validation.app
+

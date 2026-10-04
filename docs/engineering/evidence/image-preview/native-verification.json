@@ -1,0 +1,10 @@
+{
+  "process": [
+    "75228 /Applications/WTypora.app/Contents/MacOS/wtypora-desktop"
+  ],
+  "imageDisplayedInWritingMode": true,
+  "imageAltPreference": "empty",
+  "picgoExecutable": "/opt/homebrew/bin/picgo",
+  "documentSaved": true,
+  "verification": "CUA accessibility tree and visual inspection of installed application"
+}

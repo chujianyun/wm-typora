@@ -1,0 +1,183 @@
+
+> check
+> node scripts/check-foundation.mjs
+
+
+> node scripts/verify-corpus.mjs
+Corpus: 10 immutable SHA-256 checks passed
+
+> npm run format:check
+
+> format:check
+> prettier --check apps/desktop/src apps/desktop/e2e apps/desktop/*.ts apps/desktop/*.mjs scripts package.json
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> npm run typecheck
+
+> typecheck
+> npm run typecheck -w @wtypora/desktop
+
+
+> @wtypora/desktop@0.1.0 typecheck
+> tsc --noEmit
+
+
+> npm run lint
+
+> lint
+> npm run lint -w @wtypora/desktop
+
+
+> @wtypora/desktop@0.1.0 lint
+> eslint src e2e
+
+
+> npm test
+
+> test
+> npm test -w @wtypora/desktop
+
+
+> @wtypora/desktop@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.0 /Users/wuming/Documents/Coding/my/wtypora/apps/desktop
+
+
+ Test Files  14 passed (14)
+      Tests  95 passed (95)
+   Start at  14:33:05
+   Duration  6.93s (environment 44%, tests 24%, import 14%, transform 10%, setup 8%)
+
+Environment  jsdom was created 14 times · 21.53s total, 44% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments
+
+
+> npm run build
+
+> build
+> npm run build -w @wtypora/desktop
+
+
+> @wtypora/desktop@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.2.2 building client environment for production...
+transforming...
+✓ 321 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                             0.58 kB │ gzip:   0.32 kB
+dist/assets/index-DTvz-vMX.css             14.54 kB │ gzip:   3.93 kB
+dist/assets/rolldown-runtime-hePW80VL.js    0.71 kB │ gzip:   0.42 kB
+dist/assets/index-CayJ8SQ5.js             213.10 kB │ gzip:  64.50 kB
+dist/assets/react-BCfzgTKi.js             377.35 kB │ gzip: 116.34 kB
+dist/assets/editor-B-ROGBFQ.js            568.58 kB │ gzip: 200.62 kB
+
+✓ built in 108ms
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+
+> cargo fmt --all -- --check
+
+> cargo test --workspace --locked
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.35s
+     Running unittests src/lib.rs (target/debug/deps/wtypora_desktop-6fee129c69821531)
+
+running 14 tests
+test uploads::core_process_tests::core_upload_child ... ignored, subprocess entry point with an isolated PATH
+test uploads::core_process_tests::installed_picgo_starts ... ignored, manual smoke test: requires a locally installed PicGo-Core
+test opening::tests::hovering_never_opens_and_unsupported_drops_report_an_error ... ok
+test launch::tests::warm_open_is_immediate_and_non_file_urls_are_ignored ... ok
+test uploads::tests::only_contacts_local_picgo_and_accepts_image_urls ... ok
+test uploads::transport_tests::picgo_receives_the_pasted_file_and_temp_file_is_removed_after_success ... ok
+test recent::tests::damaged_history_does_not_prevent_opening_or_future_records ... ok
+test window_commands::tests::commands_reach_only_the_selected_document ... ok
+test uploads::transport_tests::failure_and_unsafe_results_do_not_escape_or_leak_temporary_files ... ok
+test opening::replacement_tests::reuse_releases_only_after_success_and_checks_session_owner ... ok
+test opening::tests::drop_opens_markdown_without_releasing_the_existing_document ... ok
+test launch::tests::cold_open_waits_for_setup_and_preserves_all_files ... ok
+test recent::tests::retains_ten_unique_paths_in_recency_order_across_restarts ... ok
+test uploads::core_process_tests::core_upload_finds_sibling_runtime_with_finder_path ... ok
+
+test result: ok. 12 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 1.05s
+
+     Running unittests src/main.rs (target/debug/deps/wtypora_desktop-4ec562ac20b23f41)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/wtypora_document_core-f4af2ee90b864b2f)
+
+running 7 tests
+test recovery::tests::crash_child_worker ... ignored, child harness invoked only by parent crash test
+test recovery::tests::directory_sync_failure_never_confirms_recovery ... ok
+test registry::tests::real_notification_invalidates_and_quiet_inspect_skips_hashing ... ok
+test atomic_save::tests::failures_preserve_original_or_report_saved_uncertain ... ok
+test recovery::tests::killed_child_restart_keeps_only_complete_recovery ... ok
+test registry::tests::receipts_are_bounded_and_do_not_retain_payload_text ... ok
+test atomic_save::tests::backups_are_bounded_per_document ... ok
+
+test result: ok. 6 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.78s
+
+     Running tests/codec.rs (target/debug/deps/codec-ea1cca14cf8079a4)
+
+running 5 tests
+test crlf_bom_roundtrip ... ok
+test preserves_empty_trailing_whitespace_and_unicode ... ok
+test mixed_and_cr_readonly ... ok
+test unsafe_encoding_rejected ... ok
+test unknown_markdown_unchanged ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/corpus.rs (target/debug/deps/corpus-296f05513715324f)
+
+running 1 test
+test fixed_corpus_roundtrips_without_normalization ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/persistence.rs (target/debug/deps/persistence-f949234ec8fc5249)
+
+running 14 tests
+test recovery_discard_respects_live_owner ... ok
+test recovery_validates_grants_versions_checksum_and_isolates_corruption ... ok
+test reload_is_two_phase_and_missing_observations_deduplicate ... ok
+test no_op_preserves_revision_and_new_destination_does_not_clobber ... ok
+test hardlink_alias_activates_existing_owner ... ok
+test save_as_replay_is_idempotent_and_rejects_changed_payload ... ok
+test save_grants_noop_conflict_and_replay ... ok
+test bom_crlf_and_save_as_identity ... ok
+test save_as_switches_parent_watch ... ok
+test symlink_swap_rejected ... ok
+test parent_watch_detects_atomic_replacement_delete_and_reappearance ... ok
+test save_reply_correlates_and_reload_commit_revokes_old_epoch ... ok
+test restore_recovery_preserves_format_retains_original_and_claims_live_record ... ok
+test save_preserves_mode_and_xattrs ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+
+   Doc-tests wtypora_desktop
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests wtypora_document_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+> cargo clippy --workspace --all-targets --locked -- -D warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.22s

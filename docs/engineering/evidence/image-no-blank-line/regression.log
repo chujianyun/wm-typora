@@ -1,0 +1,103 @@
+
+> e2e
+> npm run e2e -w @wtypora/desktop -- image-lines.spec.ts
+
+
+> @wtypora/desktop@0.1.0 e2e
+> playwright test image-lines.spec.ts
+
+[WebServer] (node:30060) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 2 workers
+
+(node:30074) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:30073) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium] › e2e/image-lines.spec.ts:7:1 › standalone image previews while editing adjacent text without blank lines (5.7s)
+  ✘  2 [webkit] › e2e/image-lines.spec.ts:7:1 › standalone image previews while editing adjacent text without blank lines (5.9s)
+
+
+  1) [chromium] › e2e/image-lines.spec.ts:7:1 › standalone image previews while editing adjacent text without blank lines 
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator: getByRole('textbox', { name: '文档编辑器' })
+    Timeout: 5000ms
+    - Expected  - 4
+    + Received  + 1
+
+    - # 图片无需空行
+    - 上方正文
+    - ![](https://images.example.test/line.svg)
+    - 下方继续写作
+    + # 图片无需空行上方正文![](https://images.example.test/line.svg)下方继续写作
+
+    Call log:
+      - Expect "toHaveText" getByRole('textbox', { name: '文档编辑器' }) with timeout 5000ms
+      - waiting for getByRole('textbox', { name: '文档编辑器' })
+        14 × locator resolved to <div translate="no" role="textbox" spellcheck="true" autocorrect="off" aria-label="文档编辑器" autocapitalize="off" aria-multiline="true" contenteditable="true" data-language="markdown" writingsuggestions="false" aria-placeholder="从这里开始写作…" class="cm-content cm-lineWrapping">…</div>
+           - unexpected value "# 图片无需空行上方正文![](https://images.example.test/line.svg)下方继续写作"
+
+
+      46 |   await expect(image).toBeVisible();
+      47 |   await page.getByRole("button", { name: "源码", exact: true }).click();
+    > 48 |   await expect(editor).toHaveText(source);
+         |                        ^
+      49 | });
+      50 |
+        at /Users/wuming/Documents/Coding/my/wtypora/apps/desktop/e2e/image-lines.spec.ts:48:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/image-lines-standalone-ima-0520f-nt-text-without-blank-lines-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/image-lines-standalone-ima-0520f-nt-text-without-blank-lines-chromium/error-context.md
+
+  2) [webkit] › e2e/image-lines.spec.ts:7:1 › standalone image previews while editing adjacent text without blank lines 
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator: getByRole('textbox', { name: '文档编辑器' })
+    Timeout: 5000ms
+    - Expected  - 4
+    + Received  + 1
+
+    - # 图片无需空行
+    - 上方正文
+    - ![](https://images.example.test/line.svg)
+    - 下方继续写作
+    + # 图片无需空行上方正文![](https://images.example.test/line.svg)下方继续写作
+
+    Call log:
+      - Expect "toHaveText" getByRole('textbox', { name: '文档编辑器' }) with timeout 5000ms
+      - waiting for getByRole('textbox', { name: '文档编辑器' })
+        14 × locator resolved to <div translate="no" role="textbox" spellcheck="true" autocorrect="off" aria-label="文档编辑器" autocapitalize="off" aria-multiline="true" contenteditable="true" data-language="markdown" writingsuggestions="false" aria-placeholder="从这里开始写作…" class="cm-content cm-lineWrapping">…</div>
+           - unexpected value "# 图片无需空行上方正文![](https://images.example.test/line.svg)下方继续写作"
+
+
+      46 |   await expect(image).toBeVisible();
+      47 |   await page.getByRole("button", { name: "源码", exact: true }).click();
+    > 48 |   await expect(editor).toHaveText(source);
+         |                        ^
+      49 | });
+      50 |
+        at /Users/wuming/Documents/Coding/my/wtypora/apps/desktop/e2e/image-lines.spec.ts:48:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/image-lines-standalone-ima-0520f-nt-text-without-blank-lines-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/image-lines-standalone-ima-0520f-nt-text-without-blank-lines-webkit/error-context.md
+
+  2 failed
+    [chromium] › e2e/image-lines.spec.ts:7:1 › standalone image previews while editing adjacent text without blank lines 
+    [webkit] › e2e/image-lines.spec.ts:7:1 › standalone image previews while editing adjacent text without blank lines 
+npm error Lifecycle script `e2e` failed with error:
+npm error code 1
+npm error path /Users/wuming/Documents/Coding/my/wtypora/apps/desktop
+npm error workspace @wtypora/desktop@0.1.0
+npm error location /Users/wuming/Documents/Coding/my/wtypora/apps/desktop
+npm error command failed
+npm error command sh -c playwright test image-lines.spec.ts

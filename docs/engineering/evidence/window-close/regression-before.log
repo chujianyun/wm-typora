@@ -1,0 +1,23 @@
+   Compiling tauri v2.11.5
+   Compiling wtypora-desktop v0.1.0 (/Users/wuming/Documents/Coding/my/wtypora/apps/desktop/src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.28s
+     Running unittests src/lib.rs (target/debug/deps/wtypora_desktop-6fee129c69821531)
+
+running 1 test
+test window_commands::tests::commands_reach_only_the_selected_document ... FAILED
+
+failures:
+
+---- window_commands::tests::commands_reach_only_the_selected_document stdout ----
+
+thread 'window_commands::tests::commands_reach_only_the_selected_document' (1550446) panicked at apps/desktop/src-tauri/src/window_commands.rs:29:13:
+background window received document.close
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    window_commands::tests::commands_reach_only_the_selected_document
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p wtypora-desktop --lib`

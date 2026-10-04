@@ -1,0 +1,132 @@
+:root {
+  --writing-font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+:root[data-theme="github"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --text: #24292f;
+  --muted: #6e7781;
+  --line: #d8dee4;
+  --panel: #f6f8fa;
+  --accent: #0969da;
+}
+:root[data-theme="newsprint"] {
+  color-scheme: light;
+  --bg: #f3f2ee;
+  --text: #303030;
+  --muted: #777167;
+  --line: #d8d5cd;
+  --panel: #e9e7df;
+  --accent: #8b4e32;
+  --writing-font: Georgia, "Songti SC", "Noto Serif CJK SC", serif;
+}
+:root[data-theme="night"] {
+  color-scheme: dark;
+  --bg: #252a34;
+  --text: #d8dee9;
+  --muted: #929baa;
+  --line: #424956;
+  --panel: #303642;
+  --accent: #88c0d0;
+}
+:root[data-theme="sepia"] {
+  color-scheme: light;
+  --bg: #fbf1df;
+  --text: #59452e;
+  --muted: #907b62;
+  --line: #e3d4ba;
+  --panel: #f3e6ce;
+  --accent: #a16438;
+  --writing-font: Georgia, "Songti SC", "Noto Serif CJK SC", serif;
+}
+:root[data-theme="light-green"] {
+  color-scheme: light;
+  --bg: #f0f7ed;
+  --text: #293b2c;
+  --muted: #60735f;
+  --line: #cbdcc6;
+  --panel: #e4efdf;
+  --accent: #357044;
+}
+:root[data-theme="light-yellow"] {
+  color-scheme: light;
+  --bg: #fffbe6;
+  --text: #403b26;
+  --muted: #78704e;
+  --line: #e5dcaf;
+  --panel: #f7f0cf;
+  --accent: #866414;
+}
+.live-writing .cm-editor {
+  font-family: var(--writing-font);
+}
+.document-name,
+.dialog p,
+.notice {
+  color: var(--muted);
+}
+.settings-dialog {
+  width: min(580px, 92vw);
+  max-height: 90dvh;
+  overflow: auto;
+}
+.settings-dialog fieldset {
+  border: 0;
+  margin: 24px 0 0;
+  padding: 0;
+  min-width: 0;
+}
+.settings-dialog legend {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0;
+  margin-bottom: 12px;
+}
+.theme-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  padding: 12px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.theme-option:has(:checked) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.theme-option strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+.theme-option small {
+  display: block;
+  font-size: 11px;
+  margin-top: 4px;
+  color: var(--muted);
+}
+.setting-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  margin: 14px 0;
+}
+.setting-row input,
+.setting-row select {
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  width: 100%;
+}
+.upload-notice {
+  justify-content: space-between;
+}

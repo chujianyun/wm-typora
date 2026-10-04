@@ -1,0 +1,47 @@
+
+> test
+> npm test -w @wtypora/desktop --run src/document/controller.test.ts
+
+npm warn "src/document/controller.test.ts" is being parsed as a normal command line argument.
+npm warn Unknown cli config "--run". This will stop working in the next major version of npm.
+
+> @wtypora/desktop@0.1.0 test
+> vitest run src/document/controller.test.ts
+
+
+ RUN  v5.0.0 /Users/wuming/Documents/Coding/my/wtypora/apps/desktop
+
+ ❯ src/document/controller.test.ts (16 tests | 1 failed) 131ms
+   × uses the empty image description preference when inserting uploads 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/document/controller.test.ts > uses the empty image description preference when inserting uploads
+AssertionError: expected '![photo.png](https://example.com/phot…' to be '![](https://example.com/photo%281%29.…' // Object.is equality
+
+Expected: "![](https://example.com/photo%281%29.png)"
+Received: "![photo.png](https://example.com/photo%281%29.png)"
+
+ ❯ src/document/controller.test.ts:254:20
+    252|   });
+    253|   await c.pasteImages([file]);
+    254|   expect(c.text()).toBe(expected);
+       |                    ^
+    255|   localStorage.clear();
+    256| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 15 passed (16)
+   Start at  22:38:33
+   Duration  721ms (environment 47%, tests 20%, import 16%, transform 9%, setup 8%)
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path /Users/wuming/Documents/Coding/my/wtypora/apps/desktop
+npm error workspace @wtypora/desktop@0.1.0
+npm error location /Users/wuming/Documents/Coding/my/wtypora/apps/desktop
+npm error command failed
+npm error command sh -c vitest run src/document/controller.test.ts

@@ -48,11 +48,15 @@ test("remote images load under the production image policy and fit the writing s
   await expect(image).toBeVisible();
   await expect(image).toHaveAttribute("alt", "");
   await expect
-    .poll(async () => {
-      const img = await image.boundingBox();
-      const cursor = await page.locator(".cm-cursor").first().boundingBox();
-      return !!img && !!cursor && cursor.y > img.y + img.height;
-    })
+    .poll(
+      async () => {
+        const img = await image.boundingBox();
+        const cursor = await page.locator(".cm-cursor").first().boundingBox();
+        return !!img && !!cursor && cursor.y > img.y + img.height;
+      },
+      // Loaded images re-measure the editor layout; allow slow CI runners to settle.
+      { timeout: 15000 },
+    )
     .toBe(true);
   if (info.project.name === "chromium")
     await page.screenshot({

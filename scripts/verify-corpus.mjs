@@ -51,7 +51,7 @@ const samples = [
     "ba778c0261008c8f71ae4061ad0162ffcbe63b52c91f89f236738131d1217ec7",
   ],
   [
-    "nul.bin",
+    "nul-byte.bin",
     [97, 0, 98],
     "59b271ae1bbcb1d31d41929817f4b16fb439eb4f31520b5ad1d5ce98920a7138",
   ],

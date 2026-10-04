@@ -8,5 +8,5 @@
  {"file":"mixed.md","encoding":"utf-8","eol":"mixed","readOnly":true,"sha256":"611912c05d6113dd9932610cf2d5876c6f05324e05f326a40620dd4f3fd4ac0d"},
  {"file":"cr.md","encoding":"utf-8","eol":"cr","readOnly":true,"sha256":"bccbc54e5d50f2a59ed94b37795c3614d186c251e67ee2c058c5e2df79d3ab02"},
  {"file":"invalid.bin","reject":true,"sha256":"ba778c0261008c8f71ae4061ad0162ffcbe63b52c91f89f236738131d1217ec7"},
- {"file":"nul.bin","reject":true,"sha256":"59b271ae1bbcb1d31d41929817f4b16fb439eb4f31520b5ad1d5ce98920a7138"}
+ {"file":"nul-byte.bin","reject":true,"sha256":"59b271ae1bbcb1d31d41929817f4b16fb439eb4f31520b5ad1d5ce98920a7138"}
 ]

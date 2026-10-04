@@ -25,7 +25,10 @@ export interface NativeBridge {
   ): Promise<string>;
   exportDocument(request: ExportRequest): Promise<string | null>;
   exportImage(url: string): Promise<ExportImage>;
-  readLocalImage(source: string, documentPath: string | null): Promise<ExportImage>;
+  readLocalImage(
+    source: string,
+    documentPath: string | null,
+  ): Promise<ExportImage>;
   revealInFolder(path: string): Promise<void>;
   save(request: SaveRequest): Promise<SaveReply>;
   saveAs(

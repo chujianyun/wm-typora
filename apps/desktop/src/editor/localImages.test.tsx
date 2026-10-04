@@ -9,7 +9,10 @@ async function liveController(text: string, path: string | null) {
   const bridge = new FakeBridge();
   bridge.opened.text = text;
   bridge.opened.path = path;
-  const controller = new DocumentController(document.createElement("div"), bridge);
+  const controller = new DocumentController(
+    document.createElement("div"),
+    bridge,
+  );
   cleanups.push(() => controller.dispose());
   await controller.initialize();
   controller.setMode("live");
@@ -64,9 +67,8 @@ it("keeps rendering remote images without touching the local loader", async () =
     "/docs/note.md",
   );
   const read = vi.spyOn(bridge, "readLocalImage");
-  const img = controller.view.dom.querySelector<HTMLImageElement>(
-    ".preview-image img",
-  )!;
+  const img =
+    controller.view.dom.querySelector<HTMLImageElement>(".preview-image img")!;
   expect(img).toHaveAttribute("src", "https://example.com/pic.png");
   expect(img).not.toHaveAttribute("data-local-src");
   expect(read).not.toHaveBeenCalled();

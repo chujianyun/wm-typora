@@ -47,12 +47,16 @@ test("remote images load under the production image policy and fit the writing s
     .toBe(true);
   await expect(image).toBeVisible();
   await expect(image).toHaveAttribute("alt", "");
+  // The loaded image pushes following content below its box. Assert on the
+  // trailing line: the cursor element only exists while the editor is focused,
+  // which is not guaranteed on headless CI runners.
+  const trailing = page.locator(".cm-line", { hasText: "继续写作" }).last();
   await expect
     .poll(
       async () => {
         const img = await image.boundingBox();
-        const cursor = await page.locator(".cm-cursor").first().boundingBox();
-        return !!img && !!cursor && cursor.y > img.y + img.height;
+        const line = await trailing.boundingBox();
+        return !!img && !!line && line.y > img.y + img.height;
       },
       // Loaded images re-measure the editor layout; allow slow CI runners to settle.
       { timeout: 15000 },

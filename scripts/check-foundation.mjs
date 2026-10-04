@@ -9,7 +9,13 @@ const checks = [
   ["npm", "test"],
   ["npm", "run", "build"],
   ["cargo", "fmt", "--all", "--", "--check"],
-  ["cargo", "test", "--workspace", "--locked"],
+  // The desktop test binary links the Tauri/WebView2 runtime and cannot start
+  // on headless Windows runners (STATUS_ENTRYPOINT_NOT_FOUND); its unit tests
+  // still run on macOS and Ubuntu, and clippy --all-targets keeps compile
+  // coverage of the test code on Windows.
+  process.platform === "win32"
+    ? ["cargo", "test", "-p", "wtypora-document-core", "--locked"]
+    : ["cargo", "test", "--workspace", "--locked"],
   [
     "cargo",
     "clippy",

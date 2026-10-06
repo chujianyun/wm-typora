@@ -1,4 +1,8 @@
-import { StateField, type EditorState } from "@codemirror/state";
+import {
+  EditorSelection,
+  StateField,
+  type EditorState,
+} from "@codemirror/state";
 import {
   Decoration,
   EditorView,
@@ -53,26 +57,14 @@ class MarkdownBlock extends WidgetType {
         );
       } else if (image.complete) updateImage();
     }
-    element.addEventListener("mousedown", (event) => {
-      if (
-        event.button !== 0 ||
-        event.shiftKey ||
-        event.metaKey ||
-        event.ctrlKey
-      )
-        return;
-      event.preventDefault();
-      // Resolve the current position from the view, not an offset captured before edits.
-      const anchor = view.posAtDOM(element);
-      view.dispatch({ selection: { anchor } });
-      view.focus();
-    });
     element.addEventListener("click", (event) => event.preventDefault());
     element.addEventListener("auxclick", (event) => event.preventDefault());
     return element;
   }
-  ignoreEvent() {
-    return true;
+  ignoreEvent(event: Event) {
+    // Let CodeMirror own the complete mouse gesture, including drag tracking
+    // when activating a rendered block replaces its DOM with editable source.
+    return event.type !== "mousedown";
   }
 }
 
@@ -181,6 +173,56 @@ export const liveMarkdown = StateField.define<{
       : value.blocks;
     return { blocks, decorations: decorate(transaction.state, blocks) };
   },
-  provide: (field) =>
+  provide: (field) => [
     EditorView.decorations.from(field, (value) => value.decorations),
+    EditorView.mouseSelectionStyle.of((view, event) => {
+      if (event.button !== 0) return null;
+      const block = (event.target as HTMLElement).closest(
+        ".live-markdown-block",
+      );
+      if (!block) return null;
+      const image = (event.target as HTMLElement).closest(".preview-image");
+      const from = view.posAtDOM(block);
+      const to = view.state
+        .field(field)
+        .blocks.find((b) => b.from === from)!.to;
+      let initial = view.state.selection;
+      view.dispatch({ selection: { anchor: from } });
+      // Resolve on editable text, not the replacement widget's coarse boundary.
+      // Clamp because activating a tall image/list can move the old click below it.
+      let anchor = image
+        ? from
+        : Math.max(
+            from,
+            Math.min(
+              to,
+              view.posAtCoords({ x: event.clientX, y: event.clientY }, false),
+            ),
+          );
+      return {
+        get(current, extend, multiple) {
+          const head =
+            current === event
+              ? anchor
+              : view.posAtCoords(
+                  { x: current.clientX, y: current.clientY },
+                  false,
+                );
+          const range = EditorSelection.range(anchor, head);
+          if (extend)
+            return initial.replaceRange(
+              initial.main.extend(range.from, range.to),
+            );
+          if (multiple) return initial.addRange(range);
+          return EditorSelection.create([range]);
+        },
+        update(update) {
+          if (update.docChanged) {
+            anchor = update.changes.mapPos(anchor);
+            initial = initial.map(update.changes);
+          }
+        },
+      };
+    }),
+  ],
 });
